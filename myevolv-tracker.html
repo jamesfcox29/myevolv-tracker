@@ -519,7 +519,12 @@
                 entry_date: new Date().toISOString().split('T')[0],
                 program: 'PATH',
                 status: 'completed',
-                notes: ''
+                notes: '',
+                voucher_awarded: false,
+                voucher_date: '',
+                voucher_type: '',
+                voucher_amount: '',
+                voucher_status: ''
             });
 
             useEffect(() => {
@@ -604,7 +609,12 @@
                         entry_date: new Date().toISOString().split('T')[0],
                         program: 'PATH',
                         status: 'completed',
-                        notes: ''
+                        notes: '',
+                        voucher_awarded: false,
+                        voucher_date: '',
+                        voucher_type: '',
+                        voucher_amount: '',
+                        voucher_status: ''
                     });
                     fetchEntries();
                     
@@ -690,7 +700,7 @@
                         <div className="header-content">
                             <div className="app-title">
                                 <h1>MyEvolv Entry Tracker</h1>
-                                <span className="badge">v1.0</span>
+                                <span className="badge">v2.0</span>
                             </div>
                             <div className="user-info">
                                 <span className="user-email">{user.email}</span>
@@ -721,6 +731,12 @@
                             >
                                 View All Entries
                             </button>
+                            <button
+                                className={`tab ${activeTab === 'reports' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('reports')}
+                            >
+                                Monthly Reports
+                            </button>
                         </div>
 
                         {activeTab === 'add' && (
@@ -747,10 +763,14 @@
                                                 required
                                             >
                                                 <option value="">Select type...</option>
-                                                <option value="enrollment">Enrollment</option>
-                                                <option value="service">Service</option>
-                                                <option value="assessment">Assessment</option>
-                                                <option value="case_note">Case Note</option>
+                                                <option value="full_enrollment">Full Enrollment (PATH)</option>
+                                                <option value="partial_enrollment">Partial Enrollment</option>
+                                                <option value="ce_standalone">Stand-Alone CE Assessment</option>
+                                                <option value="ce_with_enrollment">CE + Enrollment</option>
+                                                <option value="service">Service Provision</option>
+                                                <option value="case_note">Case Note/Contact</option>
+                                                <option value="voucher_issued">Voucher Issued</option>
+                                                <option value="follow_up">Follow-up</option>
                                                 <option value="discharge">Discharge</option>
                                                 <option value="other">Other</option>
                                             </select>
@@ -804,6 +824,81 @@
                                         />
                                     </div>
 
+                                    <div className="form-group" style={{marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--color-border)'}}>
+                                        <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.voucher_awarded}
+                                                onChange={(e) => setFormData({...formData, voucher_awarded: e.target.checked})}
+                                                style={{width: '18px', height: '18px', cursor: 'pointer'}}
+                                            />
+                                            <span className="form-label" style={{margin: 0}}>🎫 Voucher Awarded (HIGH PRIORITY)</span>
+                                        </label>
+                                    </div>
+
+                                    {formData.voucher_awarded && (
+                                        <>
+                                            <div className="form-row">
+                                                <div className="form-group">
+                                                    <label className="form-label">Voucher Date Awarded</label>
+                                                    <input
+                                                        type="date"
+                                                        className="form-input"
+                                                        value={formData.voucher_date}
+                                                        onChange={(e) => setFormData({...formData, voucher_date: e.target.value})}
+                                                        required={formData.voucher_awarded}
+                                                    />
+                                                </div>
+                                                <div className="form-group">
+                                                    <label className="form-label">Voucher Type</label>
+                                                    <select
+                                                        className="form-select"
+                                                        value={formData.voucher_type}
+                                                        onChange={(e) => setFormData({...formData, voucher_type: e.target.value})}
+                                                        required={formData.voucher_awarded}
+                                                    >
+                                                        <option value="">Select type...</option>
+                                                        <option value="rapid_rehousing">Rapid Rehousing</option>
+                                                        <option value="permanent_supportive">Permanent Supportive Housing</option>
+                                                        <option value="emergency_housing">Emergency Housing</option>
+                                                        <option value="transitional">Transitional Housing</option>
+                                                        <option value="rental_assistance">Rental Assistance</option>
+                                                        <option value="other">Other</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="form-row">
+                                                <div className="form-group">
+                                                    <label className="form-label">Voucher Amount/Value (Optional)</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-input"
+                                                        value={formData.voucher_amount}
+                                                        onChange={(e) => setFormData({...formData, voucher_amount: e.target.value})}
+                                                        placeholder="e.g., $1,200/month"
+                                                    />
+                                                </div>
+                                                <div className="form-group">
+                                                    <label className="form-label">Voucher Status</label>
+                                                    <select
+                                                        className="form-select"
+                                                        value={formData.voucher_status}
+                                                        onChange={(e) => setFormData({...formData, voucher_status: e.target.value})}
+                                                        required={formData.voucher_awarded}
+                                                    >
+                                                        <option value="">Select status...</option>
+                                                        <option value="pending">Pending/Processing</option>
+                                                        <option value="approved">Approved</option>
+                                                        <option value="active">Active/In Use</option>
+                                                        <option value="expired">Expired</option>
+                                                        <option value="declined">Declined</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
                                     <button type="submit" className="btn btn-primary">
                                         Save Entry
                                     </button>
@@ -856,6 +951,7 @@
                                                         <th>Client ID</th>
                                                         <th>Entry Type</th>
                                                         <th>Program</th>
+                                                        <th>Voucher</th>
                                                         <th>Status</th>
                                                         <th>Logged By</th>
                                                         <th>Notes</th>
@@ -863,11 +959,16 @@
                                                 </thead>
                                                 <tbody>
                                                     {filteredEntries.map((entry) => (
-                                                        <tr key={entry.id}>
+                                                        <tr key={entry.id} style={entry.voucher_awarded ? {background: 'rgba(237, 137, 54, 0.05)', borderLeft: '3px solid var(--color-warning)'} : {}}>
                                                             <td className="mono">{entry.entry_date}</td>
                                                             <td className="mono">{entry.client_id}</td>
                                                             <td>{entry.entry_type}</td>
                                                             <td>{entry.program}</td>
+                                                            <td style={{textAlign: 'center'}}>
+                                                                {entry.voucher_awarded ? (
+                                                                    <span title={`${entry.voucher_type} - ${entry.voucher_status}`} style={{fontSize: '1.2rem'}}>🎫</span>
+                                                                ) : '-'}
+                                                            </td>
                                                             <td>
                                                                 <span className={`status-badge status-${entry.status}`}>
                                                                     {entry.status}
@@ -879,6 +980,162 @@
                                                             <td style={{maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
                                                                 {entry.notes || '-'}
                                                             </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'reports' && (
+                            <>
+                                <div className="card">
+                                    <h3>📊 Monthly Reporting</h3>
+                                    <div className="form-row" style={{marginBottom: '2rem'}}>
+                                        <div className="form-group">
+                                            <label className="form-label">Start Date</label>
+                                            <input
+                                                type="date"
+                                                className="form-input"
+                                                id="report-start-date"
+                                                defaultValue={new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">End Date</label>
+                                            <input
+                                                type="date"
+                                                className="form-input"
+                                                id="report-end-date"
+                                                defaultValue={new Date().toISOString().split('T')[0]}
+                                            />
+                                        </div>
+                                        <div className="form-group" style={{display: 'flex', alignItems: 'flex-end'}}>
+                                            <button className="btn btn-primary" onClick={() => {
+                                                const startDate = document.getElementById('report-start-date').value;
+                                                const endDate = document.getElementById('report-end-date').value;
+                                                
+                                                const filtered = entries.filter(e => {
+                                                    const eDate = new Date(e.entry_date);
+                                                    return eDate >= new Date(startDate) && eDate <= new Date(endDate);
+                                                });
+                                                
+                                                const uniqueClients = [...new Set(filtered.map(e => e.client_id))];
+                                                const fullEnrollments = filtered.filter(e => e.entry_type === 'full_enrollment').length;
+                                                const partialEnrollments = filtered.filter(e => e.entry_type === 'partial_enrollment').length;
+                                                const standaloneCEs = filtered.filter(e => e.entry_type === 'ce_standalone').length;
+                                                const ceWithEnrollment = filtered.filter(e => e.entry_type === 'ce_with_enrollment').length;
+                                                const vouchersIssued = filtered.filter(e => e.voucher_awarded).length;
+                                                
+                                                const report = `MYEVOLV MONTHLY REPORT
+Period: ${startDate} to ${endDate}
+Generated: ${new Date().toLocaleDateString()}
+
+=================================
+SUMMARY STATISTICS
+=================================
+Total Unique Clients: ${uniqueClients.length}
+Total Interactions: ${filtered.length}
+
+ENROLLMENT BREAKDOWN:
+- Full Enrollments (PATH): ${fullEnrollments}
+- Partial Enrollments: ${partialEnrollments}
+- Stand-Alone CE Assessments: ${standaloneCEs}
+- CE + Enrollment Combined: ${ceWithEnrollment}
+
+VOUCHER STATUS:
+- Total Vouchers Awarded: ${vouchersIssued}
+
+=================================
+DETAILED CLIENT LIST
+=================================
+${uniqueClients.map(clientId => {
+    const clientEntries = filtered.filter(e => e.client_id === clientId);
+    const hasVoucher = clientEntries.some(e => e.voucher_awarded);
+    const voucherInfo = hasVoucher ? clientEntries.find(e => e.voucher_awarded) : null;
+    
+    return `Client: ${clientId} ${hasVoucher ? '🎫 VOUCHER' : ''}
+Total Interactions: ${clientEntries.length}
+Entry Types: ${[...new Set(clientEntries.map(e => e.entry_type))].join(', ')}
+${voucherInfo ? `Voucher: ${voucherInfo.voucher_type} - ${voucherInfo.voucher_status} (Awarded: ${voucherInfo.voucher_date})` : ''}
+---`;
+}).join('\n')}`.trim();
+                                                
+                                                const blob = new Blob([report], { type: 'text/plain' });
+                                                const url = URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = `myevolv-report-${startDate}-to-${endDate}.txt`;
+                                                a.click();
+                                                URL.revokeObjectURL(url);
+                                                
+                                                setMessage({ type: 'success', text: 'Report downloaded!' });
+                                                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+                                            }}>
+                                                Generate & Download Report
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="stats-grid">
+                                    <div className="stat-card">
+                                        <div className="stat-label">Unique Clients</div>
+                                        <div className="stat-value">{[...new Set(entries.map(e => e.client_id))].length}</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-label">Full Enrollments</div>
+                                        <div className="stat-value">{entries.filter(e => e.entry_type === 'full_enrollment').length}</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-label">Stand-Alone CEs</div>
+                                        <div className="stat-value">{entries.filter(e => e.entry_type === 'ce_standalone').length}</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-label">Vouchers Awarded</div>
+                                        <div className="stat-value" style={{color: 'var(--color-warning)'}}>{entries.filter(e => e.voucher_awarded).length}</div>
+                                    </div>
+                                </div>
+
+                                <div className="table-container">
+                                    <div className="table-header">
+                                        <h3>🎫 High Priority: Clients with Vouchers</h3>
+                                    </div>
+                                    
+                                    {entries.filter(e => e.voucher_awarded).length === 0 ? (
+                                        <div className="empty-state">
+                                            <div className="empty-state-icon">🎫</div>
+                                            <p>No vouchers awarded yet</p>
+                                        </div>
+                                    ) : (
+                                        <div className="table-wrapper">
+                                            <table>
+                                                <thead>
+                                                    <tr>
+                                                        <th>Client ID</th>
+                                                        <th>Voucher Date</th>
+                                                        <th>Type</th>
+                                                        <th>Amount</th>
+                                                        <th>Status</th>
+                                                        <th>Entry Date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {entries.filter(e => e.voucher_awarded).map((entry) => (
+                                                        <tr key={entry.id} style={{background: 'rgba(237, 137, 54, 0.05)'}}>
+                                                            <td className="mono" style={{fontWeight: '600'}}>{entry.client_id}</td>
+                                                            <td className="mono">{entry.voucher_date}</td>
+                                                            <td>{entry.voucher_type}</td>
+                                                            <td>{entry.voucher_amount || '-'}</td>
+                                                            <td>
+                                                                <span className={`status-badge status-${entry.voucher_status === 'active' ? 'completed' : 'pending'}`}>
+                                                                    {entry.voucher_status}
+                                                                </span>
+                                                            </td>
+                                                            <td className="mono">{entry.entry_date}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
