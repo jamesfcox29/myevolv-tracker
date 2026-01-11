@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyEvolv Entry Tracker</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #0a0e1a;
+            --color-surface: #151b2e;
+            --color-surface-hover: #1d2539;
+            --color-border: #2a3447;
+            --color-primary: #4a9eff;
+            --color-primary-dark: #3182ce;
+            --color-success: #48bb78;
+            --color-warning: #ed8936;
+            --color-danger: #f56565;
+            --color-text: #e2e8f0;
+            --color-text-secondary: #94a3b8;
+            --color-text-tertiary: #64748b;
+            
+            --font-sans: 'Work Sans', system-ui, -apple-system, sans-serif;
+            --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: linear-gradient(135deg, #0a0e1a 0%, #151b2e 100%);
+            color: var(--color-text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        #root {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .app-header {
+            background: var(--color-surface);
+            border-bottom: 2px solid var(--color-primary);
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .app-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-text);
+            letter-spacing: -0.02em;
+        }
+        
+        .app-title .badge {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            background: var(--color-primary);
+            color: var(--color-bg);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-email {
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+        
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .login-box {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .login-box h2 {
+            font-size: 1.875rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            color: var(--color-text);
+        }
+        
+        .login-box p {
+            color: var(--color-text-secondary);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+        }
+        
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--color-text);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            color: var(--color-text);
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-bg);
+        }
+        
+        .btn-primary:hover {
+            background: var(--color-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-secondary {
+            background: var(--color-surface-hover);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-border);
+        }
+        
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .tab:hover {
+            color: var(--color-text);
+        }
+        
+        .tab.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+        
+        /* Entry Form Card */
+        .card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+        }
+        
+        .card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        /* Table */
+        .table-container {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .table-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-header h3 {
+            font-size: 1.25rem;
+            color: var(--color-text);
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            color: var(--color-text);
+            font-size: 0.875rem;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background: var(--color-bg);
+        }
+        
+        th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.9375rem;
+        }
+        
+        tbody tr {
+            transition: background 0.2s;
+        }
+        
+        tbody tr:hover {
+            background: var(--color-surface-hover);
+        }
+        
+        .mono {
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .status-completed {
+            background: rgba(72, 187, 120, 0.2);
+            color: var(--color-success);
+        }
+        
+        .status-pending {
+            background: rgba(237, 137, 54, 0.2);
+            color: var(--color-warning);
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--color-text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        /* Alerts */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .alert-success {
+            background: rgba(72, 187, 120, 0.2);
+            color: var(--color-success);
+            border: 1px solid var(--color-success);
+        }
+        
+        .alert-error {
+            background: rgba(245, 101, 101, 0.2);
+            color: var(--color-danger);
+            border: 1px solid var(--color-danger);
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            font-family: var(--font-mono);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .app-header {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://wvvepssoltooeeqqvnul.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2dmVwc3NvbHRvb2VlcXF2bnVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNDA3MDgsImV4cCI6MjA4MzcxNjcwOH0.xPFDECNheYPrxYTBfQ3IwbUY27UNfqMMojBvnB6ArnQ';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function App() {
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [activeTab, setActiveTab] = useState('add');
+            const [entries, setEntries] = useState([]);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [message, setMessage] = useState({ type: '', text: '' });
+
+            // Form state
+            const [formData, setFormData] = useState({
+                client_id: '',
+                entry_type: '',
+                entry_date: new Date().toISOString().split('T')[0],
+                program: 'PATH',
+                status: 'completed',
+                notes: ''
+            });
+
+            useEffect(() => {
+                checkUser();
+                
+                const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+                    setUser(session?.user ?? null);
+                    setLoading(false);
+                });
+
+                return () => {
+                    authListener?.subscription?.unsubscribe();
+                };
+            }, []);
+
+            useEffect(() => {
+                if (user) {
+                    fetchEntries();
+                }
+            }, [user]);
+
+            const checkUser = async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                setUser(session?.user ?? null);
+                setLoading(false);
+            };
+
+            const fetchEntries = async () => {
+                const { data, error } = await supabase
+                    .from('myevolv_entries')
+                    .select('*')
+                    .order('entry_date', { ascending: false });
+
+                if (!error && data) {
+                    setEntries(data);
+                }
+            };
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                const email = e.target.email.value;
+                const password = e.target.password.value;
+
+                const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) {
+                    setMessage({ type: 'error', text: error.message });
+                } else {
+                    setMessage({ type: 'success', text: 'Login successful!' });
+                }
+            };
+
+            const handleLogout = async () => {
+                await supabase.auth.signOut();
+                setUser(null);
+                setEntries([]);
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+
+                const { data, error } = await supabase
+                    .from('myevolv_entries')
+                    .insert([{
+                        ...formData,
+                        user_id: user.id,
+                        user_email: user.email,
+                        created_at: new Date().toISOString()
+                    }])
+                    .select();
+
+                if (error) {
+                    setMessage({ type: 'error', text: error.message });
+                } else {
+                    setMessage({ type: 'success', text: 'Entry logged successfully!' });
+                    setFormData({
+                        client_id: '',
+                        entry_type: '',
+                        entry_date: new Date().toISOString().split('T')[0],
+                        program: 'PATH',
+                        status: 'completed',
+                        notes: ''
+                    });
+                    fetchEntries();
+                    
+                    // Clear message after 3 seconds
+                    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+                }
+            };
+
+            const filteredEntries = entries.filter(entry => {
+                const search = searchTerm.toLowerCase();
+                return (
+                    entry.client_id?.toLowerCase().includes(search) ||
+                    entry.entry_type?.toLowerCase().includes(search) ||
+                    entry.program?.toLowerCase().includes(search) ||
+                    entry.notes?.toLowerCase().includes(search)
+                );
+            });
+
+            const stats = {
+                total: entries.length,
+                thisWeek: entries.filter(e => {
+                    const entryDate = new Date(e.entry_date);
+                    const weekAgo = new Date();
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    return entryDate >= weekAgo;
+                }).length,
+                thisMonth: entries.filter(e => {
+                    const entryDate = new Date(e.entry_date);
+                    const monthAgo = new Date();
+                    monthAgo.setMonth(monthAgo.getMonth() - 1);
+                    return entryDate >= monthAgo;
+                }).length
+            };
+
+            if (loading) {
+                return <div className="login-container">Loading...</div>;
+            }
+
+            if (!user) {
+                return (
+                    <div className="login-container">
+                        <div className="login-box">
+                            <h2>MyEvolv Tracker</h2>
+                            <p>Track your data entry work</p>
+                            
+                            {message.text && (
+                                <div className={`alert alert-${message.type}`}>
+                                    {message.text}
+                                </div>
+                            )}
+                            
+                            <form onSubmit={handleLogin}>
+                                <div className="form-group">
+                                    <label className="form-label">Email</label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        className="form-input"
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Password</label>
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        className="form-input"
+                                        required
+                                    />
+                                </div>
+                                <button type="submit" className="btn btn-primary btn-full">
+                                    Sign In
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <>
+                    <header className="app-header">
+                        <div className="header-content">
+                            <div className="app-title">
+                                <h1>MyEvolv Entry Tracker</h1>
+                                <span className="badge">v1.0</span>
+                            </div>
+                            <div className="user-info">
+                                <span className="user-email">{user.email}</span>
+                                <button onClick={handleLogout} className="btn btn-secondary">
+                                    Sign Out
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="container">
+                        {message.text && (
+                            <div className={`alert alert-${message.type}`}>
+                                {message.text}
+                            </div>
+                        )}
+
+                        <div className="tabs">
+                            <button
+                                className={`tab ${activeTab === 'add' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('add')}
+                            >
+                                Log Entry
+                            </button>
+                            <button
+                                className={`tab ${activeTab === 'view' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('view')}
+                            >
+                                View All Entries
+                            </button>
+                        </div>
+
+                        {activeTab === 'add' && (
+                            <div className="card">
+                                <h3>📝 Log New MyEvolv Entry</h3>
+                                <form onSubmit={handleSubmit}>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label className="form-label">Client ID / Initials</label>
+                                            <input
+                                                type="text"
+                                                className="form-input"
+                                                value={formData.client_id}
+                                                onChange={(e) => setFormData({...formData, client_id: e.target.value})}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Entry Type</label>
+                                            <select
+                                                className="form-select"
+                                                value={formData.entry_type}
+                                                onChange={(e) => setFormData({...formData, entry_type: e.target.value})}
+                                                required
+                                            >
+                                                <option value="">Select type...</option>
+                                                <option value="enrollment">Enrollment</option>
+                                                <option value="service">Service</option>
+                                                <option value="assessment">Assessment</option>
+                                                <option value="case_note">Case Note</option>
+                                                <option value="discharge">Discharge</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label className="form-label">Entry Date</label>
+                                            <input
+                                                type="date"
+                                                className="form-input"
+                                                value={formData.entry_date}
+                                                onChange={(e) => setFormData({...formData, entry_date: e.target.value})}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Program</label>
+                                            <select
+                                                className="form-select"
+                                                value={formData.program}
+                                                onChange={(e) => setFormData({...formData, program: e.target.value})}
+                                                required
+                                            >
+                                                <option value="PATH">PATH</option>
+                                                <option value="Coordinated Entry">Coordinated Entry</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Status</label>
+                                            <select
+                                                className="form-select"
+                                                value={formData.status}
+                                                onChange={(e) => setFormData({...formData, status: e.target.value})}
+                                            >
+                                                <option value="completed">Completed</option>
+                                                <option value="pending">Pending</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">Notes (Optional)</label>
+                                        <textarea
+                                            className="form-textarea"
+                                            value={formData.notes}
+                                            onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                                            placeholder="Add any additional details or issues..."
+                                        />
+                                    </div>
+
+                                    <button type="submit" className="btn btn-primary">
+                                        Save Entry
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+
+                        {activeTab === 'view' && (
+                            <>
+                                <div className="stats-grid">
+                                    <div className="stat-card">
+                                        <div className="stat-label">Total Entries</div>
+                                        <div className="stat-value">{stats.total}</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-label">This Week</div>
+                                        <div className="stat-value">{stats.thisWeek}</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-label">This Month</div>
+                                        <div className="stat-value">{stats.thisMonth}</div>
+                                    </div>
+                                </div>
+
+                                <div className="table-container">
+                                    <div className="table-header">
+                                        <h3>All Entries</h3>
+                                        <div className="search-box">
+                                            <input
+                                                type="text"
+                                                className="search-input"
+                                                placeholder="Search entries..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    {filteredEntries.length === 0 ? (
+                                        <div className="empty-state">
+                                            <div className="empty-state-icon">📋</div>
+                                            <p>No entries found. Start logging your MyEvolv work!</p>
+                                        </div>
+                                    ) : (
+                                        <div className="table-wrapper">
+                                            <table>
+                                                <thead>
+                                                    <tr>
+                                                        <th>Date</th>
+                                                        <th>Client ID</th>
+                                                        <th>Entry Type</th>
+                                                        <th>Program</th>
+                                                        <th>Status</th>
+                                                        <th>Logged By</th>
+                                                        <th>Notes</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {filteredEntries.map((entry) => (
+                                                        <tr key={entry.id}>
+                                                            <td className="mono">{entry.entry_date}</td>
+                                                            <td className="mono">{entry.client_id}</td>
+                                                            <td>{entry.entry_type}</td>
+                                                            <td>{entry.program}</td>
+                                                            <td>
+                                                                <span className={`status-badge status-${entry.status}`}>
+                                                                    {entry.status}
+                                                                </span>
+                                                            </td>
+                                                            <td className="mono" style={{fontSize: '0.75rem'}}>
+                                                                {entry.user_email}
+                                                            </td>
+                                                            <td style={{maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                                                                {entry.notes || '-'}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
