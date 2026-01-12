@@ -54,7 +54,6 @@
             flex-direction: column;
         }
         
-        /* Header */
         .app-header {
             background: var(--color-surface);
             border-bottom: 2px solid var(--color-primary);
@@ -105,7 +104,6 @@
             color: var(--color-text-secondary);
         }
         
-        /* Main Container */
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -113,7 +111,6 @@
             flex: 1;
         }
         
-        /* Login Screen */
         .login-container {
             display: flex;
             align-items: center;
@@ -170,7 +167,6 @@
             color: var(--color-primary-dark);
         }
         
-        /* Forms */
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -214,7 +210,6 @@
             font-size: 0.875rem;
         }
         
-        /* Buttons */
         .btn {
             padding: 0.75rem 1.5rem;
             border: none;
@@ -262,7 +257,6 @@
             cursor: not-allowed;
         }
         
-        /* Tabs */
         .tabs {
             display: flex;
             gap: 0.5rem;
@@ -294,7 +288,6 @@
             border-bottom-color: var(--color-primary);
         }
         
-        /* Entry Form Card */
         .card {
             background: var(--color-surface);
             border: 1px solid var(--color-border);
@@ -319,7 +312,6 @@
             gap: 1rem;
         }
         
-        /* Table */
         .table-container {
             background: var(--color-surface);
             border: 1px solid var(--color-border);
@@ -421,7 +413,6 @@
             color: var(--color-warning);
         }
         
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
@@ -434,7 +425,6 @@
             opacity: 0.5;
         }
         
-        /* Alerts */
         .alert {
             padding: 1rem 1.5rem;
             border-radius: 6px;
@@ -454,7 +444,6 @@
             border: 1px solid var(--color-danger);
         }
         
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -485,7 +474,6 @@
             font-family: var(--font-mono);
         }
         
-        /* Responsive */
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -523,7 +511,6 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
         
-        // Supabase Configuration
         const SUPABASE_URL = 'https://wvvepssoltooeeqqvnul.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2dmVwc3NvbHRvb2VlcXF2bnVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNDA3MDgsImV4cCI6MjA4MzcxNjcwOH0.xPFDECNheYPrxYTBfQ3IwbUY27UNfqMMojBvnB6ArnQ';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -537,7 +524,6 @@
             const [message, setMessage] = useState({ type: '', text: '' });
             const [isSignup, setIsSignup] = useState(false);
 
-            // Form state
             const [formData, setFormData] = useState({
                 client_id: '',
                 entry_type: '',
@@ -549,7 +535,19 @@
                 voucher_date: null,
                 voucher_type: '',
                 voucher_amount: '',
-                voucher_status: ''
+                voucher_status: '',
+                case_conferencing_awarded: false,
+                subsidy_type: '',
+                subsidy_provider_status: '',
+                landlord_name: '',
+                landlord_phone: '',
+                landlord_email: '',
+                property_address: '',
+                ce_score: '',
+                myevolv_entry_level: '',
+                hmis_entered: false,
+                myevolv_entered: false,
+                hmis_id: ''
             });
 
             useEffect(() => {
@@ -668,7 +666,19 @@
                         voucher_date: null,
                         voucher_type: '',
                         voucher_amount: '',
-                        voucher_status: ''
+                        voucher_status: '',
+                        case_conferencing_awarded: false,
+                        subsidy_type: '',
+                        subsidy_provider_status: '',
+                        landlord_name: '',
+                        landlord_phone: '',
+                        landlord_email: '',
+                        property_address: '',
+                        ce_score: '',
+                        myevolv_entry_level: '',
+                        hmis_entered: false,
+                        myevolv_entered: false,
+                        hmis_id: ''
                     });
                     fetchEntries();
                     
@@ -682,6 +692,7 @@
                     entry.client_id?.toLowerCase().includes(search) ||
                     entry.entry_type?.toLowerCase().includes(search) ||
                     entry.program?.toLowerCase().includes(search) ||
+                    entry.hmis_id?.toLowerCase().includes(search) ||
                     entry.notes?.toLowerCase().includes(search)
                 );
             });
@@ -699,7 +710,10 @@
                     const monthAgo = new Date();
                     monthAgo.setMonth(monthAgo.getMonth() - 1);
                     return entryDate >= monthAgo;
-                }).length
+                }).length,
+                hmisOnly: entries.filter(e => e.hmis_entered && !e.myevolv_entered).length,
+                myevolvOnly: entries.filter(e => e.myevolv_entered && !e.hmis_entered).length,
+                both: entries.filter(e => e.hmis_entered && e.myevolv_entered).length
             };
 
             if (loading) {
@@ -723,25 +737,13 @@
                                 <form onSubmit={handleLogin}>
                                     <div className="form-group">
                                         <label className="form-label">Email</label>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            className="form-input"
-                                            required
-                                        />
+                                        <input type="email" name="email" className="form-input" required />
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Password</label>
-                                        <input
-                                            type="password"
-                                            name="password"
-                                            className="form-input"
-                                            required
-                                        />
+                                        <input type="password" name="password" className="form-input" required />
                                     </div>
-                                    <button type="submit" className="btn btn-primary btn-full">
-                                        Sign In
-                                    </button>
+                                    <button type="submit" className="btn btn-primary btn-full">Sign In</button>
                                     <div className="signup-link">
                                         Don't have an account? <button type="button" onClick={() => setIsSignup(true)}>Create Account</button>
                                     </div>
@@ -750,36 +752,17 @@
                                 <form onSubmit={handleSignup}>
                                     <div className="form-group">
                                         <label className="form-label">Email</label>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            className="form-input"
-                                            required
-                                        />
+                                        <input type="email" name="email" className="form-input" required />
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Password</label>
-                                        <input
-                                            type="password"
-                                            name="password"
-                                            className="form-input"
-                                            minLength="6"
-                                            required
-                                        />
+                                        <input type="password" name="password" className="form-input" minLength="6" required />
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Confirm Password</label>
-                                        <input
-                                            type="password"
-                                            name="confirmPassword"
-                                            className="form-input"
-                                            minLength="6"
-                                            required
-                                        />
+                                        <input type="password" name="confirmPassword" className="form-input" minLength="6" required />
                                     </div>
-                                    <button type="submit" className="btn btn-primary btn-full">
-                                        Create Account
-                                    </button>
+                                    <button type="submit" className="btn btn-primary btn-full">Create Account</button>
                                     <div className="signup-link">
                                         Already have an account? <button type="button" onClick={() => setIsSignup(false)}>Sign In</button>
                                     </div>
@@ -796,13 +779,11 @@
                         <div className="header-content">
                             <div className="app-title">
                                 <h1>MyEvolv Entry Tracker</h1>
-                                <span className="badge">v2.0</span>
+                                <span className="badge">v3.0</span>
                             </div>
                             <div className="user-info">
                                 <span className="user-email">{user.email}</span>
-                                <button onClick={handleLogout} className="btn btn-secondary">
-                                    Sign Out
-                                </button>
+                                <button onClick={handleLogout} className="btn btn-secondary">Sign Out</button>
                             </div>
                         </div>
                     </header>
@@ -815,22 +796,13 @@
                         )}
 
                         <div className="tabs">
-                            <button
-                                className={`tab ${activeTab === 'add' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('add')}
-                            >
+                            <button className={`tab ${activeTab === 'add' ? 'active' : ''}`} onClick={() => setActiveTab('add')}>
                                 Log Entry
                             </button>
-                            <button
-                                className={`tab ${activeTab === 'view' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('view')}
-                            >
+                            <button className={`tab ${activeTab === 'view' ? 'active' : ''}`} onClick={() => setActiveTab('view')}>
                                 View All Entries
                             </button>
-                            <button
-                                className={`tab ${activeTab === 'reports' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('reports')}
-                            >
+                            <button className={`tab ${activeTab === 'reports' ? 'active' : ''}`} onClick={() => setActiveTab('reports')}>
                                 Monthly Reports
                             </button>
                         </div>
@@ -842,22 +814,26 @@
                                     <div className="form-row">
                                         <div className="form-group">
                                             <label className="form-label">Client ID / Initials</label>
-                                            <input
-                                                type="text"
-                                                className="form-input"
-                                                value={formData.client_id}
-                                                onChange={(e) => setFormData({...formData, client_id: e.target.value})}
-                                                required
-                                            />
+                                            <input type="text" className="form-input" value={formData.client_id}
+                                                onChange={(e) => setFormData({...formData, client_id: e.target.value})} required />
                                         </div>
                                         <div className="form-group">
+                                            <label className="form-label">HMIS ID</label>
+                                            <input type="text" className="form-input" value={formData.hmis_id}
+                                                onChange={(e) => setFormData({...formData, hmis_id: e.target.value})} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">CE Score</label>
+                                            <input type="text" className="form-input" value={formData.ce_score}
+                                                onChange={(e) => setFormData({...formData, ce_score: e.target.value})} />
+                                        </div>
+                                    </div>
+
+                                    <div className="form-row">
+                                        <div className="form-group">
                                             <label className="form-label">Entry Type</label>
-                                            <select
-                                                className="form-select"
-                                                value={formData.entry_type}
-                                                onChange={(e) => setFormData({...formData, entry_type: e.target.value})}
-                                                required
-                                            >
+                                            <select className="form-select" value={formData.entry_type}
+                                                onChange={(e) => setFormData({...formData, entry_type: e.target.value})} required>
                                                 <option value="">Select type...</option>
                                                 <option value="full_enrollment">Full Enrollment (PATH)</option>
                                                 <option value="partial_enrollment">Partial Enrollment</option>
@@ -871,27 +847,29 @@
                                                 <option value="other">Other</option>
                                             </select>
                                         </div>
+                                        <div className="form-group">
+                                            <label className="form-label">MyEvolv Entry Level</label>
+                                            <select className="form-select" value={formData.myevolv_entry_level}
+                                                onChange={(e) => setFormData({...formData, myevolv_entry_level: e.target.value})}>
+                                                <option value="">Select level...</option>
+                                                <option value="full_enrollment">Full Enrollment</option>
+                                                <option value="service_only">Service Only</option>
+                                                <option value="ce_only">Coordinated Entry Only</option>
+                                                <option value="not_entered">Not Entered Yet</option>
+                                            </select>
+                                        </div>
                                     </div>
 
                                     <div className="form-row">
                                         <div className="form-group">
                                             <label className="form-label">Entry Date</label>
-                                            <input
-                                                type="date"
-                                                className="form-input"
-                                                value={formData.entry_date}
-                                                onChange={(e) => setFormData({...formData, entry_date: e.target.value})}
-                                                required
-                                            />
+                                            <input type="date" className="form-input" value={formData.entry_date}
+                                                onChange={(e) => setFormData({...formData, entry_date: e.target.value})} required />
                                         </div>
                                         <div className="form-group">
                                             <label className="form-label">Program</label>
-                                            <select
-                                                className="form-select"
-                                                value={formData.program}
-                                                onChange={(e) => setFormData({...formData, program: e.target.value})}
-                                                required
-                                            >
+                                            <select className="form-select" value={formData.program}
+                                                onChange={(e) => setFormData({...formData, program: e.target.value})} required>
                                                 <option value="PATH">PATH</option>
                                                 <option value="Coordinated Entry">Coordinated Entry</option>
                                                 <option value="Other">Other</option>
@@ -899,60 +877,87 @@
                                         </div>
                                         <div className="form-group">
                                             <label className="form-label">Status</label>
-                                            <select
-                                                className="form-select"
-                                                value={formData.status}
-                                                onChange={(e) => setFormData({...formData, status: e.target.value})}
-                                            >
+                                            <select className="form-select" value={formData.status}
+                                                onChange={(e) => setFormData({...formData, status: e.target.value})}>
                                                 <option value="completed">Completed</option>
                                                 <option value="pending">Pending</option>
                                             </select>
                                         </div>
                                     </div>
 
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                                                <input type="checkbox" checked={formData.hmis_entered}
+                                                    onChange={(e) => setFormData({...formData, hmis_entered: e.target.checked})}
+                                                    style={{width: '18px', height: '18px', cursor: 'pointer'}} />
+                                                <span className="form-label" style={{margin: 0}}>Entered into HMIS</span>
+                                            </label>
+                                        </div>
+                                        <div className="form-group">
+                                            <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                                                <input type="checkbox" checked={formData.myevolv_entered}
+                                                    onChange={(e) => setFormData({...formData, myevolv_entered: e.target.checked})}
+                                                    style={{width: '18px', height: '18px', cursor: 'pointer'}} />
+                                                <span className="form-label" style={{margin: 0}}>Entered into MyEvolv</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
                                     <div className="form-group">
                                         <label className="form-label">Notes (Optional)</label>
-                                        <textarea
-                                            className="form-textarea"
-                                            value={formData.notes}
+                                        <textarea className="form-textarea" value={formData.notes}
                                             onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                                            placeholder="Add any additional details or issues..."
-                                        />
+                                            placeholder="Add any additional details or issues..." />
                                     </div>
 
                                     <div className="form-group" style={{marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--color-border)'}}>
                                         <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.voucher_awarded}
+                                            <input type="checkbox" checked={formData.voucher_awarded}
                                                 onChange={(e) => setFormData({...formData, voucher_awarded: e.target.checked})}
-                                                style={{width: '18px', height: '18px', cursor: 'pointer'}}
-                                            />
+                                                style={{width: '18px', height: '18px', cursor: 'pointer'}} />
                                             <span className="form-label" style={{margin: 0}}>🎫 Voucher Awarded (HIGH PRIORITY)</span>
                                         </label>
                                     </div>
 
                                     {formData.voucher_awarded && (
                                         <>
+                                            <div className="form-group">
+                                                <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                                                    <input type="checkbox" checked={formData.case_conferencing_awarded}
+                                                        onChange={(e) => setFormData({...formData, case_conferencing_awarded: e.target.checked})}
+                                                        style={{width: '18px', height: '18px', cursor: 'pointer'}} />
+                                                    <span className="form-label" style={{margin: 0}}>Awarded through Case Conferencing</span>
+                                                </label>
+                                            </div>
+
                                             <div className="form-row">
                                                 <div className="form-group">
                                                     <label className="form-label">Voucher Date Awarded</label>
-                                                    <input
-                                                        type="date"
-                                                        className="form-input"
-                                                        value={formData.voucher_date || ''}
+                                                    <input type="date" className="form-input" value={formData.voucher_date || ''}
                                                         onChange={(e) => setFormData({...formData, voucher_date: e.target.value || null})}
-                                                        required={formData.voucher_awarded}
-                                                    />
+                                                        required={formData.voucher_awarded} />
                                                 </div>
                                                 <div className="form-group">
+                                                    <label className="form-label">Subsidy Type</label>
+                                                    <select className="form-select" value={formData.subsidy_type}
+                                                        onChange={(e) => setFormData({...formData, subsidy_type: e.target.value})}>
+                                                        <option value="">Select subsidy...</option>
+                                                        <option value="PSH">PSH (Permanent Supportive Housing)</option>
+                                                        <option value="Rapid Rehousing">Rapid Rehousing</option>
+                                                        <option value="City of Bangor">City of Bangor</option>
+                                                        <option value="Section 8">Section 8</option>
+                                                        <option value="Other">Other</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="form-row">
+                                                <div className="form-group">
                                                     <label className="form-label">Voucher Type</label>
-                                                    <select
-                                                        className="form-select"
-                                                        value={formData.voucher_type}
+                                                    <select className="form-select" value={formData.voucher_type}
                                                         onChange={(e) => setFormData({...formData, voucher_type: e.target.value})}
-                                                        required={formData.voucher_awarded}
-                                                    >
+                                                        required={formData.voucher_awarded}>
                                                         <option value="">Select type...</option>
                                                         <option value="rapid_rehousing">Rapid Rehousing</option>
                                                         <option value="permanent_supportive">Permanent Supportive Housing</option>
@@ -962,42 +967,59 @@
                                                         <option value="other">Other</option>
                                                     </select>
                                                 </div>
-                                            </div>
-                                            
-                                            <div className="form-row">
                                                 <div className="form-group">
-                                                    <label className="form-label">Voucher Amount/Value (Optional)</label>
-                                                    <input
-                                                        type="text"
-                                                        className="form-input"
-                                                        value={formData.voucher_amount}
+                                                    <label className="form-label">Voucher Amount/Value</label>
+                                                    <input type="text" className="form-input" value={formData.voucher_amount}
                                                         onChange={(e) => setFormData({...formData, voucher_amount: e.target.value})}
-                                                        placeholder="e.g., $1,200/month"
-                                                    />
-                                                </div>
-                                                <div className="form-group">
-                                                    <label className="form-label">Voucher Status</label>
-                                                    <select
-                                                        className="form-select"
-                                                        value={formData.voucher_status}
-                                                        onChange={(e) => setFormData({...formData, voucher_status: e.target.value})}
-                                                        required={formData.voucher_awarded}
-                                                    >
-                                                        <option value="">Select status...</option>
-                                                        <option value="pending">Pending/Processing</option>
-                                                        <option value="approved">Approved</option>
-                                                        <option value="active">Active/In Use</option>
-                                                        <option value="expired">Expired</option>
-                                                        <option value="declined">Declined</option>
-                                                    </select>
+                                                        placeholder="e.g., $1,200/month" />
                                                 </div>
                                             </div>
+
+                                            <div className="form-group">
+                                                <label className="form-label">Subsidy Provider Status</label>
+                                                <select className="form-select" value={formData.subsidy_provider_status}
+                                                    onChange={(e) => setFormData({...formData, subsidy_provider_status: e.target.value})}>
+                                                    <option value="">Select status...</option>
+                                                    <option value="pending">Pending Subsidy Approval</option>
+                                                    <option value="approved">Approved by Subsidy</option>
+                                                    <option value="denied">Denied by Subsidy</option>
+                                                    <option value="housed">Client Housed</option>
+                                                </select>
+                                            </div>
+
+                                            {formData.subsidy_provider_status === 'housed' && (
+                                                <>
+                                                    <h4 style={{marginTop: '1.5rem', marginBottom: '1rem', color: 'var(--color-success)'}}>🏠 Landlord Information</h4>
+                                                    <div className="form-row">
+                                                        <div className="form-group">
+                                                            <label className="form-label">Landlord Name</label>
+                                                            <input type="text" className="form-input" value={formData.landlord_name}
+                                                                onChange={(e) => setFormData({...formData, landlord_name: e.target.value})} />
+                                                        </div>
+                                                        <div className="form-group">
+                                                            <label className="form-label">Landlord Phone</label>
+                                                            <input type="tel" className="form-input" value={formData.landlord_phone}
+                                                                onChange={(e) => setFormData({...formData, landlord_phone: e.target.value})} />
+                                                        </div>
+                                                    </div>
+                                                    <div className="form-row">
+                                                        <div className="form-group">
+                                                            <label className="form-label">Landlord Email</label>
+                                                            <input type="email" className="form-input" value={formData.landlord_email}
+                                                                onChange={(e) => setFormData({...formData, landlord_email: e.target.value})} />
+                                                        </div>
+                                                        <div className="form-group">
+                                                            <label className="form-label">Property Address</label>
+                                                            <input type="text" className="form-input" value={formData.property_address}
+                                                                onChange={(e) => setFormData({...formData, property_address: e.target.value})} />
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
                                         </>
                                     )}
 
-                                    <button type="submit" className="btn btn-primary">
-                                        Save Entry
-                                    </button>
+                                    <button type="submit" className="btn btn-primary">Save Entry</button>
                                 </form>
                             </div>
                         )}
@@ -1017,26 +1039,33 @@
                                         <div className="stat-label">This Month</div>
                                         <div className="stat-value">{stats.thisMonth}</div>
                                     </div>
+                                    <div className="stat-card">
+                                        <div className="stat-label">HMIS Only</div>
+                                        <div className="stat-value">{stats.hmisOnly}</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-label">MyEvolv Only</div>
+                                        <div className="stat-value">{stats.myevolvOnly}</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-label">Both Systems</div>
+                                        <div className="stat-value">{stats.both}</div>
+                                    </div>
                                 </div>
 
                                 <div className="table-container">
                                     <div className="table-header">
                                         <h3>All Entries</h3>
                                         <div className="search-box">
-                                            <input
-                                                type="text"
-                                                className="search-input"
-                                                placeholder="Search entries..."
-                                                value={searchTerm}
-                                                onChange={(e) => setSearchTerm(e.target.value)}
-                                            />
+                                            <input type="text" className="search-input" placeholder="Search entries..."
+                                                value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                                         </div>
                                     </div>
                                     
                                     {filteredEntries.length === 0 ? (
                                         <div className="empty-state">
                                             <div className="empty-state-icon">📋</div>
-                                            <p>No entries found. Start logging your MyEvolv work!</p>
+                                            <p>No entries found.</p>
                                         </div>
                                     ) : (
                                         <div className="table-wrapper">
@@ -1045,12 +1074,14 @@
                                                     <tr>
                                                         <th>Date</th>
                                                         <th>Client ID</th>
+                                                        <th>HMIS ID</th>
                                                         <th>Entry Type</th>
                                                         <th>Program</th>
+                                                        <th>HMIS</th>
+                                                        <th>MyEvolv</th>
+                                                        <th>CE Score</th>
                                                         <th>Voucher</th>
                                                         <th>Status</th>
-                                                        <th>Logged By</th>
-                                                        <th>Notes</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -1058,23 +1089,19 @@
                                                         <tr key={entry.id} style={entry.voucher_awarded ? {background: 'rgba(237, 137, 54, 0.05)', borderLeft: '3px solid var(--color-warning)'} : {}}>
                                                             <td className="mono">{entry.entry_date}</td>
                                                             <td className="mono">{entry.client_id}</td>
+                                                            <td className="mono">{entry.hmis_id || '-'}</td>
                                                             <td>{entry.entry_type}</td>
                                                             <td>{entry.program}</td>
+                                                            <td style={{textAlign: 'center'}}>{entry.hmis_entered ? '✓' : '-'}</td>
+                                                            <td style={{textAlign: 'center'}}>{entry.myevolv_entered ? '✓' : '-'}</td>
+                                                            <td>{entry.ce_score || '-'}</td>
                                                             <td style={{textAlign: 'center'}}>
                                                                 {entry.voucher_awarded ? (
-                                                                    <span title={`${entry.voucher_type} - ${entry.voucher_status}`} style={{fontSize: '1.2rem'}}>🎫</span>
+                                                                    <span title={`${entry.subsidy_type || entry.voucher_type} - ${entry.subsidy_provider_status}`} style={{fontSize: '1.2rem'}}>🎫</span>
                                                                 ) : '-'}
                                                             </td>
                                                             <td>
-                                                                <span className={`status-badge status-${entry.status}`}>
-                                                                    {entry.status}
-                                                                </span>
-                                                            </td>
-                                                            <td className="mono" style={{fontSize: '0.75rem'}}>
-                                                                {entry.user_email}
-                                                            </td>
-                                                            <td style={{maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
-                                                                {entry.notes || '-'}
+                                                                <span className={`status-badge status-${entry.status}`}>{entry.status}</span>
                                                             </td>
                                                         </tr>
                                                     ))}
@@ -1089,61 +1116,83 @@
                         {activeTab === 'reports' && (
                             <>
                                 <div className="card">
-                                    <h3>📊 Monthly Reporting</h3>
+                                    <h3>📊 Customizable Monthly Reports</h3>
                                     <div className="form-row" style={{marginBottom: '2rem'}}>
                                         <div className="form-group">
                                             <label className="form-label">Start Date</label>
-                                            <input
-                                                type="date"
-                                                className="form-input"
-                                                id="report-start-date"
-                                                defaultValue={new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]}
-                                            />
+                                            <input type="date" className="form-input" id="report-start-date"
+                                                defaultValue={new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]} />
                                         </div>
                                         <div className="form-group">
                                             <label className="form-label">End Date</label>
-                                            <input
-                                                type="date"
-                                                className="form-input"
-                                                id="report-end-date"
-                                                defaultValue={new Date().toISOString().split('T')[0]}
-                                            />
+                                            <input type="date" className="form-input" id="report-end-date"
+                                                defaultValue={new Date().toISOString().split('T')[0]} />
                                         </div>
-                                        <div className="form-group" style={{display: 'flex', alignItems: 'flex-end'}}>
-                                            <button className="btn btn-primary" onClick={() => {
-                                                const startDate = document.getElementById('report-start-date').value;
-                                                const endDate = document.getElementById('report-end-date').value;
-                                                
-                                                const filtered = entries.filter(e => {
-                                                    const eDate = new Date(e.entry_date);
-                                                    return eDate >= new Date(startDate) && eDate <= new Date(endDate);
-                                                });
-                                                
-                                                const uniqueClients = [...new Set(filtered.map(e => e.client_id))];
-                                                const fullEnrollments = filtered.filter(e => e.entry_type === 'full_enrollment').length;
-                                                const partialEnrollments = filtered.filter(e => e.entry_type === 'partial_enrollment').length;
-                                                const standaloneCEs = filtered.filter(e => e.entry_type === 'ce_standalone').length;
-                                                const ceWithEnrollment = filtered.filter(e => e.entry_type === 'ce_with_enrollment').length;
-                                                const vouchersIssued = filtered.filter(e => e.voucher_awarded).length;
-                                                
-                                                const report = `MYEVOLV MONTHLY REPORT
+                                    </div>
+                                    <div className="form-row" style={{marginBottom: '2rem'}}>
+                                        <div className="form-group">
+                                            <label className="form-label">Filter by Program</label>
+                                            <select className="form-select" id="report-program">
+                                                <option value="">All Programs</option>
+                                                <option value="PATH">PATH Only</option>
+                                                <option value="Coordinated Entry">Coordinated Entry Only</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Filter by Entry Status</label>
+                                            <select className="form-select" id="report-entry-status">
+                                                <option value="">All Entries</option>
+                                                <option value="hmis_only">HMIS Only</option>
+                                                <option value="myevolv_only">MyEvolv Only</option>
+                                                <option value="both">Both Systems</option>
+                                                <option value="neither">Neither System</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button className="btn btn-primary" onClick={() => {
+                                        const startDate = document.getElementById('report-start-date').value;
+                                        const endDate = document.getElementById('report-end-date').value;
+                                        const programFilter = document.getElementById('report-program').value;
+                                        const statusFilter = document.getElementById('report-entry-status').value;
+                                        
+                                        let filtered = entries.filter(e => {
+                                            const eDate = new Date(e.entry_date);
+                                            return eDate >= new Date(startDate) && eDate <= new Date(endDate);
+                                        });
+
+                                        if (programFilter) {
+                                            filtered = filtered.filter(e => e.program === programFilter);
+                                        }
+
+                                        if (statusFilter) {
+                                            if (statusFilter === 'hmis_only') filtered = filtered.filter(e => e.hmis_entered && !e.myevolv_entered);
+                                            else if (statusFilter === 'myevolv_only') filtered = filtered.filter(e => e.myevolv_entered && !e.hmis_entered);
+                                            else if (statusFilter === 'both') filtered = filtered.filter(e => e.hmis_entered && e.myevolv_entered);
+                                            else if (statusFilter === 'neither') filtered = filtered.filter(e => !e.hmis_entered && !e.myevolv_entered);
+                                        }
+                                        
+                                        const uniqueClients = [...new Set(filtered.map(e => e.client_id))];
+                                        const vouchersIssued = filtered.filter(e => e.voucher_awarded).length;
+                                        const housed = filtered.filter(e => e.subsidy_provider_status === 'housed').length;
+                                        
+                                        const report = `MYEVOLV MONTHLY REPORT
 Period: ${startDate} to ${endDate}
 Generated: ${new Date().toLocaleDateString()}
+${programFilter ? `Program Filter: ${programFilter}` : ''}
+${statusFilter ? `Entry Status Filter: ${statusFilter}` : ''}
 
 =================================
 SUMMARY STATISTICS
 =================================
 Total Unique Clients: ${uniqueClients.length}
 Total Interactions: ${filtered.length}
+Vouchers Awarded: ${vouchersIssued}
+Clients Housed: ${housed}
 
-ENROLLMENT BREAKDOWN:
-- Full Enrollments (PATH): ${fullEnrollments}
-- Partial Enrollments: ${partialEnrollments}
-- Stand-Alone CE Assessments: ${standaloneCEs}
-- CE + Enrollment Combined: ${ceWithEnrollment}
-
-VOUCHER STATUS:
-- Total Vouchers Awarded: ${vouchersIssued}
+SYSTEM ENTRY STATUS:
+- Entered in HMIS: ${filtered.filter(e => e.hmis_entered).length}
+- Entered in MyEvolv: ${filtered.filter(e => e.myevolv_entered).length}
+- Entered in Both: ${filtered.filter(e => e.hmis_entered && e.myevolv_entered).length}
 
 =================================
 DETAILED CLIENT LIST
@@ -1152,48 +1201,40 @@ ${uniqueClients.map(clientId => {
     const clientEntries = filtered.filter(e => e.client_id === clientId);
     const hasVoucher = clientEntries.some(e => e.voucher_awarded);
     const voucherInfo = hasVoucher ? clientEntries.find(e => e.voucher_awarded) : null;
+    const hmisId = clientEntries.find(e => e.hmis_id)?.hmis_id;
+    const ceScore = clientEntries.find(e => e.ce_score)?.ce_score;
     
     return `Client: ${clientId} ${hasVoucher ? '🎫 VOUCHER' : ''}
+HMIS ID: ${hmisId || 'Not provided'}
+CE Score: ${ceScore || 'Not assessed'}
 Total Interactions: ${clientEntries.length}
 Entry Types: ${[...new Set(clientEntries.map(e => e.entry_type))].join(', ')}
-${voucherInfo ? `Voucher: ${voucherInfo.voucher_type} - ${voucherInfo.voucher_status} (Awarded: ${voucherInfo.voucher_date})` : ''}
+${voucherInfo ? `
+Voucher Info:
+- Type: ${voucherInfo.subsidy_type || voucherInfo.voucher_type}
+- Status: ${voucherInfo.subsidy_provider_status}
+- Case Conferencing: ${voucherInfo.case_conferencing_awarded ? 'Yes' : 'No'}
+- Date Awarded: ${voucherInfo.voucher_date}
+${voucherInfo.subsidy_provider_status === 'housed' && voucherInfo.landlord_name ? `
+Landlord: ${voucherInfo.landlord_name}
+Phone: ${voucherInfo.landlord_phone || 'N/A'}
+Address: ${voucherInfo.property_address || 'N/A'}` : ''}` : ''}
 ---`;
 }).join('\n')}`.trim();
-                                                
-                                                const blob = new Blob([report], { type: 'text/plain' });
-                                                const url = URL.createObjectURL(blob);
-                                                const a = document.createElement('a');
-                                                a.href = url;
-                                                a.download = `myevolv-report-${startDate}-to-${endDate}.txt`;
-                                                a.click();
-                                                URL.revokeObjectURL(url);
-                                                
-                                                setMessage({ type: 'success', text: 'Report downloaded!' });
-                                                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-                                            }}>
-                                                Generate & Download Report
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="stats-grid">
-                                    <div className="stat-card">
-                                        <div className="stat-label">Unique Clients</div>
-                                        <div className="stat-value">{[...new Set(entries.map(e => e.client_id))].length}</div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="stat-label">Full Enrollments</div>
-                                        <div className="stat-value">{entries.filter(e => e.entry_type === 'full_enrollment').length}</div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="stat-label">Stand-Alone CEs</div>
-                                        <div className="stat-value">{entries.filter(e => e.entry_type === 'ce_standalone').length}</div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="stat-label">Vouchers Awarded</div>
-                                        <div className="stat-value" style={{color: 'var(--color-warning)'}}>{entries.filter(e => e.voucher_awarded).length}</div>
-                                    </div>
+                                        
+                                        const blob = new Blob([report], { type: 'text/plain' });
+                                        const url = URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `myevolv-report-${startDate}-to-${endDate}.txt`;
+                                        a.click();
+                                        URL.revokeObjectURL(url);
+                                        
+                                        setMessage({ type: 'success', text: 'Report downloaded!' });
+                                        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+                                    }}>
+                                        Generate & Download Report
+                                    </button>
                                 </div>
 
                                 <div className="table-container">
@@ -1212,26 +1253,28 @@ ${voucherInfo ? `Voucher: ${voucherInfo.voucher_type} - ${voucherInfo.voucher_st
                                                 <thead>
                                                     <tr>
                                                         <th>Client ID</th>
+                                                        <th>Subsidy Type</th>
+                                                        <th>Provider Status</th>
+                                                        <th>Case Conf.</th>
                                                         <th>Voucher Date</th>
-                                                        <th>Type</th>
-                                                        <th>Amount</th>
-                                                        <th>Status</th>
-                                                        <th>Entry Date</th>
+                                                        <th>Landlord</th>
+                                                        <th>Property</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {entries.filter(e => e.voucher_awarded).map((entry) => (
                                                         <tr key={entry.id} style={{background: 'rgba(237, 137, 54, 0.05)'}}>
                                                             <td className="mono" style={{fontWeight: '600'}}>{entry.client_id}</td>
-                                                            <td className="mono">{entry.voucher_date}</td>
-                                                            <td>{entry.voucher_type}</td>
-                                                            <td>{entry.voucher_amount || '-'}</td>
+                                                            <td>{entry.subsidy_type || entry.voucher_type}</td>
                                                             <td>
-                                                                <span className={`status-badge status-${entry.voucher_status === 'active' ? 'completed' : 'pending'}`}>
-                                                                    {entry.voucher_status}
+                                                                <span className={`status-badge status-${entry.subsidy_provider_status === 'housed' ? 'completed' : 'pending'}`}>
+                                                                    {entry.subsidy_provider_status || 'pending'}
                                                                 </span>
                                                             </td>
-                                                            <td className="mono">{entry.entry_date}</td>
+                                                            <td style={{textAlign: 'center'}}>{entry.case_conferencing_awarded ? '✓' : '-'}</td>
+                                                            <td className="mono">{entry.voucher_date}</td>
+                                                            <td>{entry.landlord_name || '-'}</td>
+                                                            <td>{entry.property_address || '-'}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
