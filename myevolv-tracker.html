@@ -1396,7 +1396,8 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <button className="btn btn-primary" onClick={() => {
+                                    <div style={{display: 'flex', gap: '1rem'}}>
+                                        <button className="btn btn-primary" onClick={() => {
                                         const startDate = document.getElementById('report-start-date').value;
                                         const endDate = document.getElementById('report-end-date').value;
                                         const programFilter = document.getElementById('report-program').value;
@@ -1482,6 +1483,97 @@ Address: ${voucherInfo.property_address || 'N/A'}` : ''}` : ''}
                                     }}>
                                         Generate & Download Report
                                     </button>
+                                    <button className="btn btn-secondary" onClick={() => {
+                                        const startDate = document.getElementById('report-start-date').value;
+                                        const endDate = document.getElementById('report-end-date').value;
+                                        const programFilter = document.getElementById('report-program').value;
+                                        const statusFilter = document.getElementById('report-entry-status').value;
+                                        
+                                        let filtered = entries.filter(e => {
+                                            const eDate = new Date(e.entry_date);
+                                            return eDate >= new Date(startDate) && eDate <= new Date(endDate);
+                                        });
+
+                                        if (programFilter) {
+                                            filtered = filtered.filter(e => e.program === programFilter);
+                                        }
+
+                                        if (statusFilter) {
+                                            if (statusFilter === 'hmis_only') filtered = filtered.filter(e => e.hmis_entered && !e.myevolv_entered);
+                                            else if (statusFilter === 'myevolv_only') filtered = filtered.filter(e => e.myevolv_entered && !e.hmis_entered);
+                                            else if (statusFilter === 'both') filtered = filtered.filter(e => e.hmis_entered && e.myevolv_entered);
+                                            else if (statusFilter === 'neither') filtered = filtered.filter(e => !e.hmis_entered && !e.myevolv_entered);
+                                        }
+
+                                        // CSV Header
+                                        const headers = [
+                                            'Client ID', 'HMIS ID', 'CE Score', 'Entry Date', 'Entry Type', 
+                                            'MyEvolv Entry Level', 'Program', 'Status', 'HMIS Entered', 'MyEvolv Entered',
+                                            'Voucher Awarded', 'Case Conferencing', 'Voucher Date', 'Subsidy Type', 
+                                            'Voucher Type', 'Voucher Amount', 'Subsidy Provider Status',
+                                            'Landlord Name', 'Landlord Phone', 'Landlord Email', 'Property Address',
+                                            'Notes', 'Logged By', 'Created At'
+                                        ];
+
+                                        // CSV Rows
+                                        const rows = filtered.map(e => [
+                                            e.client_id || '',
+                                            e.hmis_id || '',
+                                            e.ce_score || '',
+                                            e.entry_date || '',
+                                            e.entry_type || '',
+                                            e.myevolv_entry_level || '',
+                                            e.program || '',
+                                            e.status || '',
+                                            e.hmis_entered ? 'Yes' : 'No',
+                                            e.myevolv_entered ? 'Yes' : 'No',
+                                            e.voucher_awarded ? 'Yes' : 'No',
+                                            e.case_conferencing_awarded ? 'Yes' : 'No',
+                                            e.voucher_date || '',
+                                            e.subsidy_type || '',
+                                            e.voucher_type || '',
+                                            e.voucher_amount || '',
+                                            e.subsidy_provider_status || '',
+                                            e.landlord_name || '',
+                                            e.landlord_phone || '',
+                                            e.landlord_email || '',
+                                            e.property_address || '',
+                                            e.notes ? e.notes.replace(/"/g, '""') : '', // Escape quotes in notes
+                                            e.user_email || '',
+                                            e.created_at ? new Date(e.created_at).toLocaleString() : ''
+                                        ]);
+
+                                        // Escape function for CSV
+                                        const escapeCSV = (value) => {
+                                            if (value === null || value === undefined) return '';
+                                            const str = String(value);
+                                            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                                                return `"${str.replace(/"/g, '""')}"`;
+                                            }
+                                            return str;
+                                        };
+
+                                        // Build CSV
+                                        const csvContent = [
+                                            headers.map(escapeCSV).join(','),
+                                            ...rows.map(row => row.map(escapeCSV).join(','))
+                                        ].join('\n');
+
+                                        // Download CSV
+                                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                                        const url = URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `myevolv-report-${startDate}-to-${endDate}.csv`;
+                                        a.click();
+                                        URL.revokeObjectURL(url);
+
+                                        setMessage({ type: 'success', text: 'CSV exported successfully!' });
+                                        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+                                    }}>
+                                        Export as CSV
+                                    </button>
+                                    </div>
                                 </div>
 
                                 <div className="table-container">
