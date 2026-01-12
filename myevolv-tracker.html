@@ -512,7 +512,7 @@
             const [searchTerm, setSearchTerm] = useState('');
             const [message, setMessage] = useState({ type: '', text: '' });
 
-            // Form state
+            // Form state - FIXED: voucher_date is now null instead of empty string
             const [formData, setFormData] = useState({
                 client_id: '',
                 entry_type: '',
@@ -521,7 +521,7 @@
                 status: 'completed',
                 notes: '',
                 voucher_awarded: false,
-                voucher_date: '',
+                voucher_date: null,
                 voucher_type: '',
                 voucher_amount: '',
                 voucher_status: ''
@@ -603,6 +603,7 @@
                     setMessage({ type: 'error', text: error.message });
                 } else {
                     setMessage({ type: 'success', text: 'Entry logged successfully!' });
+                    // FIXED: Reset form with voucher_date as null instead of empty string
                     setFormData({
                         client_id: '',
                         entry_type: '',
@@ -611,7 +612,7 @@
                         status: 'completed',
                         notes: '',
                         voucher_awarded: false,
-                        voucher_date: '',
+                        voucher_date: null,
                         voucher_type: '',
                         voucher_amount: '',
                         voucher_status: ''
@@ -844,8 +845,8 @@
                                                     <input
                                                         type="date"
                                                         className="form-input"
-                                                        value={formData.voucher_date}
-                                                        onChange={(e) => setFormData({...formData, voucher_date: e.target.value})}
+                                                        value={formData.voucher_date || ''}
+                                                        onChange={(e) => setFormData({...formData, voucher_date: e.target.value || null})}
                                                         required={formData.voucher_awarded}
                                                     />
                                                 </div>
