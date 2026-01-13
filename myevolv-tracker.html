@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyEvolv Entry Tracker</title>
+    <title>MyEvolv Entry Tracker v4.0</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -257,6 +257,11 @@
             cursor: not-allowed;
         }
         
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8125rem;
+        }
+        
         .tabs {
             display: flex;
             gap: 0.5rem;
@@ -382,6 +387,7 @@
         
         tbody tr {
             transition: background 0.2s;
+            cursor: pointer;
         }
         
         tbody tr:hover {
@@ -474,7 +480,6 @@
             font-family: var(--font-mono);
         }
         
-        /* Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -572,8 +577,60 @@
             font-size: 0.875rem;
         }
         
-        tbody tr {
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--color-border);
+        }
+        
+        .ce-high-priority {
+            background: rgba(237, 137, 54, 0.3);
+            color: var(--color-warning);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .system-filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            color: var(--color-text-secondary);
+            border-radius: 6px;
+            font-size: 0.875rem;
             cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-sans);
+            font-weight: 500;
+        }
+        
+        .filter-btn:hover {
+            background: var(--color-surface-hover);
+            color: var(--color-text);
+        }
+        
+        .filter-btn.active {
+            background: var(--color-primary);
+            color: var(--color-bg);
+            border-color: var(--color-primary);
+        }
+        
+        .status-icon {
+            display: inline-block;
+            font-size: 1.1rem;
         }
         
         @media (max-width: 768px) {
@@ -635,6 +692,8 @@
             const [message, setMessage] = useState({ type: '', text: '' });
             const [isSignup, setIsSignup] = useState(false);
             const [selectedEntry, setSelectedEntry] = useState(null);
+            const [editingEntry, setEditingEntry] = useState(null);
+            const [systemFilter, setSystemFilter] = useState('all');
 
             const [formData, setFormData] = useState({
                 client_id: '',
@@ -659,7 +718,12 @@
                 myevolv_entry_level: '',
                 hmis_entered: false,
                 myevolv_entered: false,
-                hmis_id: ''
+                hmis_id: '',
+                last_service_date: new Date().toISOString().split('T')[0],
+                case_manager: '',
+                dob: '',
+                has_insurance: false,
+                has_ssn: false
             });
 
             useEffect(() => {
@@ -790,7 +854,12 @@
                         myevolv_entry_level: '',
                         hmis_entered: false,
                         myevolv_entered: false,
-                        hmis_id: ''
+                        hmis_id: '',
+                        last_service_date: new Date().toISOString().split('T')[0],
+                        case_manager: '',
+                        dob: '',
+                        has_insurance: false,
+                        has_ssn: false
                     });
                     fetchEntries();
                     
@@ -798,15 +867,56 @@
                 }
             };
 
+            const handleUpdate = async (e) => {
+                e.preventDefault();
+                
+                const { data, error } = await supabase
+                    .from('myevolv_entries')
+                    .update(editingEntry)
+                    .eq('id', editingEntry.id)
+                    .select();
+
+                if (error) {
+                    setMessage({ type: 'error', text: error.message });
+                } else {
+                    setMessage({ type: 'success', text: 'Entry updated successfully!' });
+                    setEditingEntry(null);
+                    fetchEntries();
+                    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+                }
+            };
+
+            const isCEHighPriority = (score) => {
+                if (!score) return false;
+                const num = parseInt(score);
+                return num >= 14 && num <= 16;
+            };
+
+            const getSystemStatus = (entry) => {
+                if (entry.hmis_entered && entry.myevolv_entered) return 'both';
+                if (entry.hmis_entered) return 'hmis_only';
+                if (entry.myevolv_entered) return 'myevolv_only';
+                return 'neither';
+            };
+
             const filteredEntries = entries.filter(entry => {
                 const search = searchTerm.toLowerCase();
-                return (
+                const matchesSearch = (
                     entry.client_id?.toLowerCase().includes(search) ||
                     entry.entry_type?.toLowerCase().includes(search) ||
                     entry.program?.toLowerCase().includes(search) ||
                     entry.hmis_id?.toLowerCase().includes(search) ||
+                    entry.case_manager?.toLowerCase().includes(search) ||
                     entry.notes?.toLowerCase().includes(search)
                 );
+                
+                let matchesSystem = true;
+                if (systemFilter !== 'all') {
+                    const status = getSystemStatus(entry);
+                    matchesSystem = status === systemFilter;
+                }
+                
+                return matchesSearch && matchesSystem;
             });
 
             const stats = {
@@ -825,7 +935,8 @@
                 }).length,
                 hmisOnly: entries.filter(e => e.hmis_entered && !e.myevolv_entered).length,
                 myevolvOnly: entries.filter(e => e.myevolv_entered && !e.hmis_entered).length,
-                both: entries.filter(e => e.hmis_entered && e.myevolv_entered).length
+                both: entries.filter(e => e.hmis_entered && e.myevolv_entered).length,
+                neither: entries.filter(e => !e.hmis_entered && !e.myevolv_entered).length
             };
 
             if (loading) {
@@ -837,7 +948,7 @@
                     <div className="login-container">
                         <div className="login-box">
                             <h2>MyEvolv Tracker</h2>
-                            <p>{isSignup ? 'Create your account' : 'Track your data entry work'}</p>
+                            <p>{isSignup ? 'Create your account' : 'Track your PATH data entry work'}</p>
                             
                             {message.text && (
                                 <div className={`alert alert-${message.type}`}>
@@ -891,7 +1002,7 @@
                         <div className="header-content">
                             <div className="app-title">
                                 <h1>MyEvolv Entry Tracker</h1>
-                                <span className="badge">v3.0</span>
+                                <span className="badge">v4.0</span>
                             </div>
                             <div className="user-info">
                                 <span className="user-email">{user.email}</span>
@@ -921,7 +1032,7 @@
 
                         {activeTab === 'add' && (
                             <div className="card">
-                                <h3>📝 Log New MyEvolv Entry</h3>
+                                <h3>📝 Log New PATH Entry</h3>
                                 <form onSubmit={handleSubmit}>
                                     <div className="form-row">
                                         <div className="form-group">
@@ -937,7 +1048,46 @@
                                         <div className="form-group">
                                             <label className="form-label">CE Score</label>
                                             <input type="text" className="form-input" value={formData.ce_score}
-                                                onChange={(e) => setFormData({...formData, ce_score: e.target.value})} />
+                                                onChange={(e) => setFormData({...formData, ce_score: e.target.value})} 
+                                                placeholder="14-16 = HIGH PRIORITY" />
+                                        </div>
+                                    </div>
+
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label className="form-label">Date of Birth</label>
+                                            <input type="date" className="form-input" value={formData.dob}
+                                                onChange={(e) => setFormData({...formData, dob: e.target.value})} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Case Manager</label>
+                                            <input type="text" className="form-input" value={formData.case_manager}
+                                                onChange={(e) => setFormData({...formData, case_manager: e.target.value})}
+                                                placeholder="Your name or colleague's name" />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Last Service Date</label>
+                                            <input type="date" className="form-input" value={formData.last_service_date}
+                                                onChange={(e) => setFormData({...formData, last_service_date: e.target.value})} />
+                                        </div>
+                                    </div>
+
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                                                <input type="checkbox" checked={formData.has_insurance}
+                                                    onChange={(e) => setFormData({...formData, has_insurance: e.target.checked})}
+                                                    style={{width: '18px', height: '18px', cursor: 'pointer'}} />
+                                                <span className="form-label" style={{margin: 0}}>Has Insurance</span>
+                                            </label>
+                                        </div>
+                                        <div className="form-group">
+                                            <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                                                <input type="checkbox" checked={formData.has_ssn}
+                                                    onChange={(e) => setFormData({...formData, has_ssn: e.target.checked})}
+                                                    style={{width: '18px', height: '18px', cursor: 'pointer'}} />
+                                                <span className="form-label" style={{margin: 0}}>Has Social Security Info</span>
+                                            </label>
                                         </div>
                                     </div>
 
@@ -947,9 +1097,9 @@
                                             <select className="form-select" value={formData.entry_type}
                                                 onChange={(e) => setFormData({...formData, entry_type: e.target.value})} required>
                                                 <option value="">Select type...</option>
-                                                <option value="full_enrollment">Full Enrollment (PATH)</option>
+                                                <option value="full_enrollment">Full PATH Enrollment</option>
                                                 <option value="partial_enrollment">Partial Enrollment</option>
-                                                <option value="ce_standalone">Stand-Alone CE Assessment</option>
+                                                <option value="ce_standalone">Stand-Alone CE Assessment (required for PATH)</option>
                                                 <option value="ce_with_enrollment">CE + Enrollment</option>
                                                 <option value="service">Service Provision</option>
                                                 <option value="case_note">Case Note/Contact</option>
@@ -977,15 +1127,6 @@
                                             <label className="form-label">Entry Date</label>
                                             <input type="date" className="form-input" value={formData.entry_date}
                                                 onChange={(e) => setFormData({...formData, entry_date: e.target.value})} required />
-                                        </div>
-                                        <div className="form-group">
-                                            <label className="form-label">Program</label>
-                                            <select className="form-select" value={formData.program}
-                                                onChange={(e) => setFormData({...formData, program: e.target.value})} required>
-                                                <option value="PATH">PATH</option>
-                                                <option value="Coordinated Entry">Coordinated Entry</option>
-                                                <option value="Other">Other</option>
-                                            </select>
                                         </div>
                                         <div className="form-group">
                                             <label className="form-label">Status</label>
@@ -1143,7 +1284,14 @@
                                         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                                             <div className="modal-header">
                                                 <h3>Client Details: {selectedEntry.client_id}</h3>
-                                                <button className="modal-close" onClick={() => setSelectedEntry(null)}>×</button>
+                                                <div style={{display: 'flex', gap: '0.5rem'}}>
+                                                    <button className="btn btn-primary btn-sm" onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setEditingEntry({...selectedEntry});
+                                                        setSelectedEntry(null);
+                                                    }}>✏️ Edit</button>
+                                                    <button className="modal-close" onClick={() => setSelectedEntry(null)}>×</button>
+                                                </div>
                                             </div>
                                             <div className="modal-body">
                                                 <div className="detail-section">
@@ -1157,12 +1305,30 @@
                                                         <div className="detail-value">{selectedEntry.hmis_id || 'Not provided'}</div>
                                                     </div>
                                                     <div className="detail-row">
+                                                        <div className="detail-label">Date of Birth</div>
+                                                        <div className="detail-value">{selectedEntry.dob || 'Not provided'}</div>
+                                                    </div>
+                                                    <div className="detail-row">
                                                         <div className="detail-label">CE Score</div>
-                                                        <div className="detail-value">{selectedEntry.ce_score || 'Not assessed'}</div>
+                                                        <div className="detail-value">
+                                                            {selectedEntry.ce_score ? (
+                                                                isCEHighPriority(selectedEntry.ce_score) ? 
+                                                                <span className="ce-high-priority">🔥 {selectedEntry.ce_score} (HIGH PRIORITY)</span> : 
+                                                                selectedEntry.ce_score
+                                                            ) : 'Not assessed'}
+                                                        </div>
+                                                    </div>
+                                                    <div className="detail-row">
+                                                        <div className="detail-label">Case Manager</div>
+                                                        <div className="detail-value">{selectedEntry.case_manager || 'Not assigned'}</div>
                                                     </div>
                                                     <div className="detail-row">
                                                         <div className="detail-label">Entry Date</div>
                                                         <div className="detail-value">{selectedEntry.entry_date}</div>
+                                                    </div>
+                                                    <div className="detail-row">
+                                                        <div className="detail-label">Last Service Date</div>
+                                                        <div className="detail-value">{selectedEntry.last_service_date || 'Not recorded'}</div>
                                                     </div>
                                                     <div className="detail-row">
                                                         <div className="detail-label">Entry Type</div>
@@ -1173,12 +1339,24 @@
                                                         <div className="detail-value">{selectedEntry.myevolv_entry_level || 'Not specified'}</div>
                                                     </div>
                                                     <div className="detail-row">
-                                                        <div className="detail-label">Program</div>
-                                                        <div className="detail-value">{selectedEntry.program}</div>
-                                                    </div>
-                                                    <div className="detail-row">
                                                         <div className="detail-label">Status</div>
                                                         <div className="detail-value">{selectedEntry.status}</div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="detail-section">
+                                                    <h4>Documentation Status</h4>
+                                                    <div className="detail-row">
+                                                        <div className="detail-label">Has Insurance</div>
+                                                        <div className="detail-value">
+                                                            {selectedEntry.has_insurance ? '✓ Yes' : '✗ No'}
+                                                        </div>
+                                                    </div>
+                                                    <div className="detail-row">
+                                                        <div className="detail-label">Has Social Security Info</div>
+                                                        <div className="detail-value">
+                                                            {selectedEntry.has_ssn ? '✓ Yes' : '✗ No'}
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -1271,6 +1449,29 @@
                                     </div>
                                 )}
 
+                                <div className="system-filter-buttons">
+                                    <button className={`filter-btn ${systemFilter === 'all' ? 'active' : ''}`}
+                                        onClick={() => setSystemFilter('all')}>
+                                        All Entries ({entries.length})
+                                    </button>
+                                    <button className={`filter-btn ${systemFilter === 'hmis_only' ? 'active' : ''}`}
+                                        onClick={() => setSystemFilter('hmis_only')}>
+                                        HMIS Only ({stats.hmisOnly})
+                                    </button>
+                                    <button className={`filter-btn ${systemFilter === 'myevolv_only' ? 'active' : ''}`}
+                                        onClick={() => setSystemFilter('myevolv_only')}>
+                                        MyEvolv Only ({stats.myevolvOnly})
+                                    </button>
+                                    <button className={`filter-btn ${systemFilter === 'both' ? 'active' : ''}`}
+                                        onClick={() => setSystemFilter('both')}>
+                                        Both Systems ({stats.both})
+                                    </button>
+                                    <button className={`filter-btn ${systemFilter === 'neither' ? 'active' : ''}`}
+                                        onClick={() => setSystemFilter('neither')}>
+                                        Neither System ({stats.neither})
+                                    </button>
+                                </div>
+
                                 <div className="stats-grid">
                                     <div className="stat-card">
                                         <div className="stat-label">Total Entries</div>
@@ -1319,12 +1520,12 @@
                                                     <tr>
                                                         <th>Date</th>
                                                         <th>Client ID</th>
-                                                        <th>HMIS ID</th>
+                                                        <th>Case Manager</th>
                                                         <th>Entry Type</th>
-                                                        <th>Program</th>
                                                         <th>HMIS</th>
                                                         <th>MyEvolv</th>
                                                         <th>CE Score</th>
+                                                        <th>Docs</th>
                                                         <th>Voucher</th>
                                                         <th>Status</th>
                                                     </tr>
@@ -1336,12 +1537,21 @@
                                                             style={entry.voucher_awarded ? {background: 'rgba(237, 137, 54, 0.05)', borderLeft: '3px solid var(--color-warning)'} : {}}>
                                                             <td className="mono">{entry.entry_date}</td>
                                                             <td className="mono">{entry.client_id}</td>
-                                                            <td className="mono">{entry.hmis_id || '-'}</td>
+                                                            <td>{entry.case_manager || '-'}</td>
                                                             <td>{entry.entry_type}</td>
-                                                            <td>{entry.program}</td>
                                                             <td style={{textAlign: 'center'}}>{entry.hmis_entered ? '✓' : '-'}</td>
                                                             <td style={{textAlign: 'center'}}>{entry.myevolv_entered ? '✓' : '-'}</td>
-                                                            <td>{entry.ce_score || '-'}</td>
+                                                            <td>
+                                                                {entry.ce_score ? (
+                                                                    isCEHighPriority(entry.ce_score) ? 
+                                                                    <span className="ce-high-priority">🔥 {entry.ce_score}</span> : 
+                                                                    entry.ce_score
+                                                                ) : '-'}
+                                                            </td>
+                                                            <td style={{textAlign: 'center'}}>
+                                                                {entry.has_insurance && entry.has_ssn ? '✓✓' : 
+                                                                 entry.has_insurance || entry.has_ssn ? '✓' : '-'}
+                                                            </td>
                                                             <td style={{textAlign: 'center'}}>
                                                                 {entry.voucher_awarded ? (
                                                                     <span title={`${entry.subsidy_type || entry.voucher_type} - ${entry.subsidy_provider_status}`} style={{fontSize: '1.2rem'}}>🎫</span>
@@ -1363,7 +1573,7 @@
                         {activeTab === 'reports' && (
                             <>
                                 <div className="card">
-                                    <h3>📊 Customizable Monthly Reports</h3>
+                                    <h3>📊 PATH Monthly Reports</h3>
                                     <div className="form-row" style={{marginBottom: '2rem'}}>
                                         <div className="form-group">
                                             <label className="form-label">Start Date</label>
@@ -1378,15 +1588,7 @@
                                     </div>
                                     <div className="form-row" style={{marginBottom: '2rem'}}>
                                         <div className="form-group">
-                                            <label className="form-label">Filter by Program</label>
-                                            <select className="form-select" id="report-program">
-                                                <option value="">All Programs</option>
-                                                <option value="PATH">PATH Only</option>
-                                                <option value="Coordinated Entry">Coordinated Entry Only</option>
-                                            </select>
-                                        </div>
-                                        <div className="form-group">
-                                            <label className="form-label">Filter by Entry Status</label>
+                                            <label className="form-label">Filter by System Entry</label>
                                             <select className="form-select" id="report-entry-status">
                                                 <option value="">All Entries</option>
                                                 <option value="hmis_only">HMIS Only</option>
@@ -1400,17 +1602,12 @@
                                         <button className="btn btn-primary" onClick={() => {
                                         const startDate = document.getElementById('report-start-date').value;
                                         const endDate = document.getElementById('report-end-date').value;
-                                        const programFilter = document.getElementById('report-program').value;
                                         const statusFilter = document.getElementById('report-entry-status').value;
                                         
                                         let filtered = entries.filter(e => {
                                             const eDate = new Date(e.entry_date);
                                             return eDate >= new Date(startDate) && eDate <= new Date(endDate);
                                         });
-
-                                        if (programFilter) {
-                                            filtered = filtered.filter(e => e.program === programFilter);
-                                        }
 
                                         if (statusFilter) {
                                             if (statusFilter === 'hmis_only') filtered = filtered.filter(e => e.hmis_entered && !e.myevolv_entered);
@@ -1422,12 +1619,22 @@
                                         const uniqueClients = [...new Set(filtered.map(e => e.client_id))];
                                         const vouchersIssued = filtered.filter(e => e.voucher_awarded).length;
                                         const housed = filtered.filter(e => e.subsidy_provider_status === 'housed').length;
+                                        const highPriority = filtered.filter(e => isCEHighPriority(e.ce_score)).length;
+                                        const hasInsurance = filtered.filter(e => e.has_insurance).length;
+                                        const hasSSN = filtered.filter(e => e.has_ssn).length;
+                                        const fullyDocumented = filtered.filter(e => e.has_insurance && e.has_ssn).length;
                                         
-                                        const report = `MYEVOLV MONTHLY REPORT
+                                        const caseManagers = {};
+                                        filtered.forEach(e => {
+                                            if (e.case_manager) {
+                                                caseManagers[e.case_manager] = (caseManagers[e.case_manager] || 0) + 1;
+                                            }
+                                        });
+                                        
+                                        const report = `PATH MONTHLY REPORT
 Period: ${startDate} to ${endDate}
 Generated: ${new Date().toLocaleDateString()}
-${programFilter ? `Program Filter: ${programFilter}` : ''}
-${statusFilter ? `Entry Status Filter: ${statusFilter}` : ''}
+${statusFilter ? `System Filter: ${statusFilter}` : ''}
 
 =================================
 SUMMARY STATISTICS
@@ -1436,25 +1643,39 @@ Total Unique Clients: ${uniqueClients.length}
 Total Interactions: ${filtered.length}
 Vouchers Awarded: ${vouchersIssued}
 Clients Housed: ${housed}
+High Priority (CE 14-16): ${highPriority}
 
 SYSTEM ENTRY STATUS:
 - Entered in HMIS: ${filtered.filter(e => e.hmis_entered).length}
 - Entered in MyEvolv: ${filtered.filter(e => e.myevolv_entered).length}
 - Entered in Both: ${filtered.filter(e => e.hmis_entered && e.myevolv_entered).length}
+- Not Entered: ${filtered.filter(e => !e.hmis_entered && !e.myevolv_entered).length}
+
+DOCUMENTATION STATUS:
+- Has Insurance: ${hasInsurance}
+- Has Social Security: ${hasSSN}
+- Fully Documented: ${fullyDocumented}
+
+CASE MANAGERS:
+${Object.entries(caseManagers).map(([name, count]) => `- ${name}: ${count} clients`).join('\n')}
 
 =================================
 DETAILED CLIENT LIST
 =================================
 ${uniqueClients.map(clientId => {
     const clientEntries = filtered.filter(e => e.client_id === clientId);
+    const latest = clientEntries[0];
     const hasVoucher = clientEntries.some(e => e.voucher_awarded);
     const voucherInfo = hasVoucher ? clientEntries.find(e => e.voucher_awarded) : null;
-    const hmisId = clientEntries.find(e => e.hmis_id)?.hmis_id;
-    const ceScore = clientEntries.find(e => e.ce_score)?.ce_score;
     
-    return `Client: ${clientId} ${hasVoucher ? '🎫 VOUCHER' : ''}
-HMIS ID: ${hmisId || 'Not provided'}
-CE Score: ${ceScore || 'Not assessed'}
+    return `Client: ${clientId} ${isCEHighPriority(latest.ce_score) ? '🔥 HIGH PRIORITY' : ''}
+HMIS ID: ${latest.hmis_id || 'Not provided'}
+DOB: ${latest.dob || 'Not provided'}
+CE Score: ${latest.ce_score || 'Not assessed'}
+Case Manager: ${latest.case_manager || 'Not assigned'}
+Last Service: ${latest.last_service_date || 'Not recorded'}
+Insurance: ${latest.has_insurance ? 'Yes' : 'No'} | Social Security: ${latest.has_ssn ? 'Yes' : 'No'}
+System Entry: ${latest.hmis_entered ? 'HMIS' : ''} ${latest.myevolv_entered ? 'MyEvolv' : ''} ${!latest.hmis_entered && !latest.myevolv_entered ? 'NOT ENTERED' : ''}
 Total Interactions: ${clientEntries.length}
 Entry Types: ${[...new Set(clientEntries.map(e => e.entry_type))].join(', ')}
 ${voucherInfo ? `
@@ -1474,7 +1695,7 @@ Address: ${voucherInfo.property_address || 'N/A'}` : ''}` : ''}
                                         const url = URL.createObjectURL(blob);
                                         const a = document.createElement('a');
                                         a.href = url;
-                                        a.download = `myevolv-report-${startDate}-to-${endDate}.txt`;
+                                        a.download = `path-report-${startDate}-to-${endDate}.txt`;
                                         a.click();
                                         URL.revokeObjectURL(url);
                                         
@@ -1486,17 +1707,12 @@ Address: ${voucherInfo.property_address || 'N/A'}` : ''}` : ''}
                                     <button className="btn btn-secondary" onClick={() => {
                                         const startDate = document.getElementById('report-start-date').value;
                                         const endDate = document.getElementById('report-end-date').value;
-                                        const programFilter = document.getElementById('report-program').value;
                                         const statusFilter = document.getElementById('report-entry-status').value;
                                         
                                         let filtered = entries.filter(e => {
                                             const eDate = new Date(e.entry_date);
                                             return eDate >= new Date(startDate) && eDate <= new Date(endDate);
                                         });
-
-                                        if (programFilter) {
-                                            filtered = filtered.filter(e => e.program === programFilter);
-                                        }
 
                                         if (statusFilter) {
                                             if (statusFilter === 'hmis_only') filtered = filtered.filter(e => e.hmis_entered && !e.myevolv_entered);
@@ -1505,28 +1721,31 @@ Address: ${voucherInfo.property_address || 'N/A'}` : ''}` : ''}
                                             else if (statusFilter === 'neither') filtered = filtered.filter(e => !e.hmis_entered && !e.myevolv_entered);
                                         }
 
-                                        // CSV Header
                                         const headers = [
-                                            'Client ID', 'HMIS ID', 'CE Score', 'Entry Date', 'Entry Type', 
-                                            'MyEvolv Entry Level', 'Program', 'Status', 'HMIS Entered', 'MyEvolv Entered',
+                                            'Client ID', 'HMIS ID', 'DOB', 'CE Score', 'Case Manager', 'Entry Date', 'Last Service Date',
+                                            'Entry Type', 'MyEvolv Entry Level', 'Status', 'HMIS Entered', 'MyEvolv Entered',
+                                            'Has Insurance', 'Has SSN',
                                             'Voucher Awarded', 'Case Conferencing', 'Voucher Date', 'Subsidy Type', 
                                             'Voucher Type', 'Voucher Amount', 'Subsidy Provider Status',
                                             'Landlord Name', 'Landlord Phone', 'Landlord Email', 'Property Address',
                                             'Notes', 'Logged By', 'Created At'
                                         ];
 
-                                        // CSV Rows
                                         const rows = filtered.map(e => [
                                             e.client_id || '',
                                             e.hmis_id || '',
+                                            e.dob || '',
                                             e.ce_score || '',
+                                            e.case_manager || '',
                                             e.entry_date || '',
+                                            e.last_service_date || '',
                                             e.entry_type || '',
                                             e.myevolv_entry_level || '',
-                                            e.program || '',
                                             e.status || '',
                                             e.hmis_entered ? 'Yes' : 'No',
                                             e.myevolv_entered ? 'Yes' : 'No',
+                                            e.has_insurance ? 'Yes' : 'No',
+                                            e.has_ssn ? 'Yes' : 'No',
                                             e.voucher_awarded ? 'Yes' : 'No',
                                             e.case_conferencing_awarded ? 'Yes' : 'No',
                                             e.voucher_date || '',
@@ -1538,12 +1757,11 @@ Address: ${voucherInfo.property_address || 'N/A'}` : ''}` : ''}
                                             e.landlord_phone || '',
                                             e.landlord_email || '',
                                             e.property_address || '',
-                                            e.notes ? e.notes.replace(/"/g, '""') : '', // Escape quotes in notes
+                                            e.notes ? e.notes.replace(/"/g, '""') : '',
                                             e.user_email || '',
                                             e.created_at ? new Date(e.created_at).toLocaleString() : ''
                                         ]);
 
-                                        // Escape function for CSV
                                         const escapeCSV = (value) => {
                                             if (value === null || value === undefined) return '';
                                             const str = String(value);
@@ -1553,18 +1771,16 @@ Address: ${voucherInfo.property_address || 'N/A'}` : ''}` : ''}
                                             return str;
                                         };
 
-                                        // Build CSV
                                         const csvContent = [
                                             headers.map(escapeCSV).join(','),
                                             ...rows.map(row => row.map(escapeCSV).join(','))
                                         ].join('\n');
 
-                                        // Download CSV
                                         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                                         const url = URL.createObjectURL(blob);
                                         const a = document.createElement('a');
                                         a.href = url;
-                                        a.download = `myevolv-report-${startDate}-to-${endDate}.csv`;
+                                        a.download = `path-report-${startDate}-to-${endDate}.csv`;
                                         a.click();
                                         URL.revokeObjectURL(url);
 
@@ -1592,6 +1808,7 @@ Address: ${voucherInfo.property_address || 'N/A'}` : ''}` : ''}
                                                 <thead>
                                                     <tr>
                                                         <th>Client ID</th>
+                                                        <th>Case Manager</th>
                                                         <th>Subsidy Type</th>
                                                         <th>Provider Status</th>
                                                         <th>Case Conf.</th>
@@ -1602,8 +1819,10 @@ Address: ${voucherInfo.property_address || 'N/A'}` : ''}` : ''}
                                                 </thead>
                                                 <tbody>
                                                     {entries.filter(e => e.voucher_awarded).map((entry) => (
-                                                        <tr key={entry.id} style={{background: 'rgba(237, 137, 54, 0.05)'}}>
+                                                        <tr key={entry.id} style={{background: 'rgba(237, 137, 54, 0.05)'}}
+                                                            onClick={() => setSelectedEntry(entry)}>
                                                             <td className="mono" style={{fontWeight: '600'}}>{entry.client_id}</td>
+                                                            <td>{entry.case_manager || '-'}</td>
                                                             <td>{entry.subsidy_type || entry.voucher_type}</td>
                                                             <td>
                                                                 <span className={`status-badge status-${entry.subsidy_provider_status === 'housed' ? 'completed' : 'pending'}`}>
