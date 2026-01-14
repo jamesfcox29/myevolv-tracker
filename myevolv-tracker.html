@@ -3,1851 +3,1134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyEvolv Entry Tracker v4.0</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <title>MyEvolv Entry Tracker v4.1</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --color-bg: #0a0e1a;
-            --color-surface: #151b2e;
-            --color-surface-hover: #1d2539;
-            --color-border: #2a3447;
-            --color-primary: #4a9eff;
-            --color-primary-dark: #3182ce;
-            --color-success: #48bb78;
-            --color-warning: #ed8936;
-            --color-danger: #f56565;
-            --color-text: #e2e8f0;
-            --color-text-secondary: #94a3b8;
-            --color-text-tertiary: #64748b;
-            
-            --font-sans: 'Work Sans', system-ui, -apple-system, sans-serif;
-            --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
-            
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-        }
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: var(--font-sans);
-            background: linear-gradient(135deg, #0a0e1a 0%, #151b2e 100%);
-            color: var(--color-text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            line-height: 1.6;
+            padding: 20px;
         }
-        
-        #root {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .app-header {
-            background: var(--color-surface);
-            border-bottom: 2px solid var(--color-primary);
-            padding: 1.5rem 2rem;
-            box-shadow: var(--shadow-md);
-        }
-        
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .app-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .app-title h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--color-text);
-            letter-spacing: -0.02em;
-        }
-        
-        .app-title .badge {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            background: var(--color-primary);
-            color: var(--color-bg);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-weight: 600;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .user-email {
-            font-family: var(--font-mono);
-            font-size: 0.875rem;
-            color: var(--color-text-secondary);
-        }
-        
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 2rem;
-            flex: 1;
-        }
-        
-        .login-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 2rem;
-        }
-        
-        .login-box {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 12px;
-            padding: 3rem;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .login-box h2 {
-            font-size: 1.875rem;
-            margin-bottom: 0.5rem;
-            text-align: center;
-            color: var(--color-text);
-        }
-        
-        .login-box p {
-            color: var(--color-text-secondary);
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 0.875rem;
-        }
-        
-        .signup-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--color-border);
-            color: var(--color-text-secondary);
-            font-size: 0.875rem;
-        }
-        
-        .signup-link button {
-            background: none;
-            border: none;
-            color: var(--color-primary);
-            cursor: pointer;
-            text-decoration: underline;
-            font-size: 0.875rem;
-            padding: 0;
-            font-family: var(--font-sans);
-        }
-        
-        .signup-link button:hover {
-            color: var(--color-primary-dark);
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            font-size: 0.875rem;
-            color: var(--color-text);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .form-input,
-        .form-select,
-        .form-textarea {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            background: var(--color-bg);
-            border: 1px solid var(--color-border);
-            border-radius: 6px;
-            color: var(--color-text);
-            font-family: var(--font-sans);
-            font-size: 0.9375rem;
-            transition: all 0.2s;
-        }
-        
-        .form-input:focus,
-        .form-select:focus,
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
-        }
-        
-        .form-textarea {
-            resize: vertical;
-            min-height: 80px;
-            font-family: var(--font-mono);
-            font-size: 0.875rem;
-        }
-        
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 6px;
-            font-family: var(--font-sans);
-            font-size: 0.9375rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .btn-primary {
-            background: var(--color-primary);
-            color: var(--color-bg);
-        }
-        
-        .btn-primary:hover {
-            background: var(--color-primary-dark);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .btn-secondary {
-            background: var(--color-surface-hover);
-            color: var(--color-text);
-            border: 1px solid var(--color-border);
-        }
-        
-        .btn-secondary:hover {
-            background: var(--color-border);
-        }
-        
-        .btn-full {
-            width: 100%;
-            justify-content: center;
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .btn-sm {
-            padding: 0.5rem 1rem;
-            font-size: 0.8125rem;
-        }
-        
-        .tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid var(--color-border);
-        }
-        
-        .tab {
-            padding: 0.75rem 1.5rem;
-            background: none;
-            border: none;
-            color: var(--color-text-secondary);
-            font-family: var(--font-sans);
-            font-size: 0.9375rem;
-            font-weight: 600;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .tab:hover {
-            color: var(--color-text);
-        }
-        
-        .tab.active {
-            color: var(--color-primary);
-            border-bottom-color: var(--color-primary);
-        }
-        
-        .card {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: var(--shadow-sm);
-            margin-bottom: 2rem;
-        }
-        
-        .card h3 {
-            font-size: 1.25rem;
-            margin-bottom: 1.5rem;
-            color: var(--color-text);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-        
-        .table-container {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 12px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
-            box-shadow: var(--shadow-sm);
         }
-        
-        .table-header {
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--color-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .table-header h3 {
-            font-size: 1.25rem;
-            color: var(--color-text);
-        }
-        
-        .search-box {
-            display: flex;
-            gap: 0.5rem;
-            flex: 1;
-            max-width: 400px;
-        }
-        
-        .search-input {
-            flex: 1;
-            padding: 0.5rem 1rem;
-            background: var(--color-bg);
-            border: 1px solid var(--color-border);
-            border-radius: 6px;
-            color: var(--color-text);
-            font-size: 0.875rem;
-        }
-        
-        .table-wrapper {
-            overflow-x: auto;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        thead {
-            background: var(--color-bg);
-        }
-        
-        th {
-            padding: 1rem 1.5rem;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.75rem;
-            color: var(--color-text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom: 1px solid var(--color-border);
-        }
-        
-        td {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--color-border);
-            font-size: 0.9375rem;
-        }
-        
-        tbody tr {
-            transition: background 0.2s;
-            cursor: pointer;
-        }
-        
-        tbody tr:hover {
-            background: var(--color-surface-hover);
-        }
-        
-        .mono {
-            font-family: var(--font-mono);
-            font-size: 0.875rem;
-        }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .status-completed {
-            background: rgba(72, 187, 120, 0.2);
-            color: var(--color-success);
-        }
-        
-        .status-pending {
-            background: rgba(237, 137, 54, 0.2);
-            color: var(--color-warning);
-        }
-        
-        .empty-state {
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
             text-align: center;
-            padding: 4rem 2rem;
-            color: var(--color-text-secondary);
         }
-        
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
-        
-        .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            font-size: 0.875rem;
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
         }
-        
-        .alert-success {
-            background: rgba(72, 187, 120, 0.2);
-            color: var(--color-success);
-            border: 1px solid var(--color-success);
-        }
-        
-        .alert-error {
-            background: rgba(245, 101, 101, 0.2);
-            color: var(--color-danger);
-            border: 1px solid var(--color-danger);
-        }
-        
-        .stats-grid {
+
+        .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
         }
-        
+
         .stat-card {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
         }
-        
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
         .stat-label {
-            font-size: 0.75rem;
-            color: var(--color-text-secondary);
+            color: #666;
+            font-size: 0.9em;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
         }
-        
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--color-primary);
-            font-family: var(--font-mono);
+
+        .content {
+            padding: 30px;
         }
-        
-        .modal-overlay {
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .button-secondary {
+            background: #6c757d;
+        }
+
+        .button-danger {
+            background: #dc3545;
+        }
+
+        .button-success {
+            background: #28a745;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button-group .button {
+            width: auto;
+            flex: 1;
+        }
+
+        .entries-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .entries-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .entries-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+        }
+
+        .entries-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .entries-table tbody tr {
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .entries-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .entries-table tbody tr.selected {
+            background-color: #e7f3ff;
+        }
+
+        .filter-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 0.85em;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.95em;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .modal {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-            padding: 2rem;
         }
-        
+
+        .modal.active {
+            display: flex;
+        }
+
         .modal-content {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 12px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
             max-width: 800px;
-            width: 100%;
+            width: 90%;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        
+
         .modal-header {
-            padding: 2rem;
-            border-bottom: 1px solid var(--color-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
         }
-        
-        .modal-header h3 {
-            font-size: 1.5rem;
-            color: var(--color-text);
+
+        .modal-header h2 {
+            color: #333;
+            font-size: 1.8em;
         }
-        
-        .modal-close {
+
+        .close-button {
             background: none;
             border: none;
-            color: var(--color-text-secondary);
-            font-size: 2rem;
+            font-size: 2em;
             cursor: pointer;
+            color: #666;
             padding: 0;
             width: 40px;
             height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
-            transition: all 0.2s;
+            border-radius: 50%;
+            transition: background 0.2s ease;
         }
-        
-        .modal-close:hover {
-            background: var(--color-surface-hover);
-            color: var(--color-text);
+
+        .close-button:hover {
+            background: #f0f0f0;
         }
-        
-        .modal-body {
-            padding: 2rem;
+
+        .report-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
         }
-        
-        .detail-section {
-            margin-bottom: 2rem;
+
+        .report-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
         }
-        
-        .detail-section h4 {
-            font-size: 1rem;
-            color: var(--color-primary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--color-border);
+
+        .report-item {
+            padding: 10px;
+            background: white;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
         }
-        
-        .detail-row {
-            display: grid;
-            grid-template-columns: 200px 1fr;
-            gap: 1rem;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid rgba(42, 52, 71, 0.5);
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.2em;
         }
-        
-        .detail-label {
-            font-weight: 600;
-            color: var(--color-text-secondary);
-            font-size: 0.875rem;
-        }
-        
-        .detail-value {
-            color: var(--color-text);
-            font-family: var(--font-mono);
-            font-size: 0.875rem;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: flex-end;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--color-border);
-        }
-        
-        .ce-high-priority {
-            background: rgba(237, 137, 54, 0.3);
-            color: var(--color-warning);
-            padding: 0.25rem 0.75rem;
-            border-radius: 6px;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-        
-        .system-filter-buttons {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            margin-bottom: 1.5rem;
-        }
-        
-        .filter-btn {
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--color-border);
-            background: var(--color-surface);
-            color: var(--color-text-secondary);
-            border-radius: 6px;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: var(--font-sans);
-            font-weight: 500;
-        }
-        
-        .filter-btn:hover {
-            background: var(--color-surface-hover);
-            color: var(--color-text);
-        }
-        
-        .filter-btn.active {
-            background: var(--color-primary);
-            color: var(--color-bg);
-            border-color: var(--color-primary);
-        }
-        
-        .status-icon {
+
+        .badge {
             display: inline-block;
-            font-size: 1.1rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 5px;
         }
-        
+
+        .badge-enrollment {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-housing {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .badge-followup {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-yes {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-no {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
         @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
+            .header h1 {
+                font-size: 1.8em;
             }
-            
-            .app-header {
-                padding: 1rem;
+
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
             }
-            
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: flex-start;
-            }
-            
-            .form-row {
+
+            .form-grid {
                 grid-template-columns: 1fr;
             }
-            
-            .table-header {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: stretch;
+
+            .entries-table {
+                font-size: 0.9em;
             }
-            
-            .search-box {
-                max-width: 100%;
+
+            .entries-table th,
+            .entries-table td {
+                padding: 10px 8px;
             }
-            
-            .detail-row {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-            
-            .modal-overlay {
-                padding: 1rem;
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
             }
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div class="container">
+        <div class="header">
+            <h1>📊 MyEvolv Entry Tracker v4.1</h1>
+            <p>PATH Program Data Management System - Enhanced Edition</p>
+        </div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        
-        const SUPABASE_URL = 'https://wvvepssoltooeeqqvnul.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2dmVwc3NvbHRvb2VlcXF2bnVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNDA3MDgsImV4cCI6MjA4MzcxNjcwOH0.xPFDECNheYPrxYTBfQ3IwbUY27UNfqMMojBvnB6ArnQ';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        <div class="stats-container" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-number" id="totalEntries">0</div>
+                <div class="stat-label">Total Entries</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalEnrollments">0</div>
+                <div class="stat-label">Enrollments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalHousing">0</div>
+                <div class="stat-label">Housing Vouchers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalFollowups">0</div>
+                <div class="stat-label">Follow-ups</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="currentMonth">0</div>
+                <div class="stat-label">This Month</div>
+            </div>
+        </div>
 
-        function App() {
-            const [user, setUser] = useState(null);
-            const [loading, setLoading] = useState(true);
-            const [activeTab, setActiveTab] = useState('add');
-            const [entries, setEntries] = useState([]);
-            const [searchTerm, setSearchTerm] = useState('');
-            const [message, setMessage] = useState({ type: '', text: '' });
-            const [isSignup, setIsSignup] = useState(false);
-            const [selectedEntry, setSelectedEntry] = useState(null);
-            const [editingEntry, setEditingEntry] = useState(null);
-            const [systemFilter, setSystemFilter] = useState('all');
-
-            const [formData, setFormData] = useState({
-                client_id: '',
-                entry_type: '',
-                entry_date: new Date().toISOString().split('T')[0],
-                program: 'PATH',
-                status: 'completed',
-                notes: '',
-                voucher_awarded: false,
-                voucher_date: null,
-                voucher_type: '',
-                voucher_amount: '',
-                voucher_status: '',
-                case_conferencing_awarded: false,
-                subsidy_type: '',
-                subsidy_provider_status: '',
-                landlord_name: '',
-                landlord_phone: '',
-                landlord_email: '',
-                property_address: '',
-                ce_score: '',
-                myevolv_entry_level: '',
-                hmis_entered: false,
-                myevolv_entered: false,
-                hmis_id: '',
-                last_service_date: new Date().toISOString().split('T')[0],
-                case_manager: '',
-                dob: '',
-                has_insurance: false,
-                has_ssn: false
-            });
-
-            useEffect(() => {
-                checkUser();
+        <div class="content">
+            <!-- Add Entry Section -->
+            <div class="section">
+                <h2 class="section-title">➕ Add New Entry</h2>
+                <div id="messageContainer"></div>
                 
-                const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-                    setUser(session?.user ?? null);
-                    setLoading(false);
-                });
+                <form id="entryForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="clientName">Client Name *</label>
+                            <input type="text" id="clientName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dateOfBirth">Date of Birth</label>
+                            <input type="date" id="dateOfBirth">
+                        </div>
+                        <div class="form-group">
+                            <label for="caseManager">Case Manager</label>
+                            <input type="text" id="caseManager">
+                        </div>
+                        <div class="form-group">
+                            <label for="entryDate">Entry Date *</label>
+                            <input type="date" id="entryDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="entryType">Entry Type *</label>
+                            <select id="entryType" required>
+                                <option value="">Select Type</option>
+                                <option value="enrollment">New Enrollment</option>
+                                <option value="housing_voucher">Housing Voucher Award</option>
+                                <option value="followup">Follow-up Contact</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastServiceDate">Last Service Date</label>
+                            <input type="date" id="lastServiceDate">
+                        </div>
+                    </div>
 
-                return () => {
-                    authListener?.subscription?.unsubscribe();
-                };
-            }, []);
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="myEvolvCompleted">
+                                <label for="myEvolvCompleted">MyEvolv Entry Completed</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="hmisCompleted">
+                                <label for="hmisCompleted">HMIS Entry Completed</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="hasInsurance">
+                                <label for="hasInsurance">Has Insurance</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="hasSsn">
+                                <label for="hasSsn">Has SSN</label>
+                            </div>
+                        </div>
+                    </div>
 
-            useEffect(() => {
-                if (user) {
-                    fetchEntries();
-                }
-            }, [user]);
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes" rows="3" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: inherit; font-size: 1em;"></textarea>
+                    </div>
 
-            const checkUser = async () => {
-                const { data: { session } } = await supabase.auth.getSession();
-                setUser(session?.user ?? null);
-                setLoading(false);
-            };
+                    <button type="submit" class="button">Add Entry</button>
+                </form>
+            </div>
 
-            const fetchEntries = async () => {
+            <!-- View Entries Section -->
+            <div class="section">
+                <h2 class="section-title">📋 View All Entries</h2>
+                
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="filterMonth">Filter by Month</label>
+                        <input type="month" id="filterMonth">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterType">Filter by Type</label>
+                        <select id="filterType">
+                            <option value="">All Types</option>
+                            <option value="enrollment">Enrollments</option>
+                            <option value="housing_voucher">Housing Vouchers</option>
+                            <option value="followup">Follow-ups</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterCompletion">Filter by Completion</label>
+                        <select id="filterCompletion">
+                            <option value="">All Entries</option>
+                            <option value="both">Both Systems Complete</option>
+                            <option value="myevolv">MyEvolv Complete</option>
+                            <option value="hmis">HMIS Complete</option>
+                            <option value="incomplete">Incomplete</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterCaseManager">Filter by Case Manager</label>
+                        <input type="text" id="filterCaseManager" placeholder="Enter name...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterClient">Filter by Client</label>
+                        <input type="text" id="filterClient" placeholder="Enter client name...">
+                    </div>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="entries-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Client Name</th>
+                                <th>DOB</th>
+                                <th>Case Manager</th>
+                                <th>Type</th>
+                                <th>Last Service</th>
+                                <th>MyEvolv</th>
+                                <th>HMIS</th>
+                                <th>Insurance</th>
+                                <th>SSN</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="entriesTableBody">
+                            <tr>
+                                <td colspan="11" class="loading">Loading entries...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Generate Report Section -->
+            <div class="section">
+                <h2 class="section-title">📊 Generate Monthly Report</h2>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="reportMonth">Select Month *</label>
+                        <input type="month" id="reportMonth" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reportType">Filter by Entry Type</label>
+                        <select id="reportType">
+                            <option value="">All Types</option>
+                            <option value="enrollment">Enrollments Only</option>
+                            <option value="housing_voucher">Housing Vouchers Only</option>
+                            <option value="followup">Follow-ups Only</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="button" onclick="generateReport()">Generate Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Entry</h2>
+                <button class="close-button" onclick="closeEditModal()">&times;</button>
+            </div>
+            
+            <form id="editForm">
+                <input type="hidden" id="editEntryId">
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="editClientName">Client Name *</label>
+                        <input type="text" id="editClientName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDateOfBirth">Date of Birth</label>
+                        <input type="date" id="editDateOfBirth">
+                    </div>
+                    <div class="form-group">
+                        <label for="editCaseManager">Case Manager</label>
+                        <input type="text" id="editCaseManager">
+                    </div>
+                    <div class="form-group">
+                        <label for="editEntryDate">Entry Date *</label>
+                        <input type="date" id="editEntryDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEntryType">Entry Type *</label>
+                        <select id="editEntryType" required>
+                            <option value="enrollment">New Enrollment</option>
+                            <option value="housing_voucher">Housing Voucher Award</option>
+                            <option value="followup">Follow-up Contact</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editLastServiceDate">Last Service Date</label>
+                        <input type="date" id="editLastServiceDate">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="editMyEvolvCompleted">
+                            <label for="editMyEvolvCompleted">MyEvolv Entry Completed</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="editHmisCompleted">
+                            <label for="editHmisCompleted">HMIS Entry Completed</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="editHasInsurance">
+                            <label for="editHasInsurance">Has Insurance</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="editHasSsn">
+                            <label for="editHasSsn">Has SSN</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="editNotes">Notes</label>
+                    <textarea id="editNotes" rows="3" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: inherit; font-size: 1em;"></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="button button-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="button button-success">Save Changes</button>
+                    <button type="button" class="button button-danger" onclick="deleteEntry()">Delete Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Monthly Report</h2>
+                <button class="close-button" onclick="closeReportModal()">&times;</button>
+            </div>
+            <div id="reportContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://wvvepssoltooeeqqvnul.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2dmVwc3NvbHRvb2VlcXF2bnVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyODI1NjgsImV4cCI6MjA1MTg1ODU2OH0.xWpNTtj2yOEu3Jfl-XvcgBPbI5SoMb0CaCtZw4wMhZg';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let allEntries = [];
+        let currentEditId = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadEntries();
+            setupEventListeners();
+            setDefaultDates();
+        });
+
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('entryDate').value = today;
+            
+            const currentMonth = new Date().toISOString().slice(0, 7);
+            document.getElementById('reportMonth').value = currentMonth;
+        }
+
+        function setupEventListeners() {
+            document.getElementById('entryForm').addEventListener('submit', handleAddEntry);
+            document.getElementById('editForm').addEventListener('submit', handleEditEntry);
+            
+            // Filter listeners
+            document.getElementById('filterMonth').addEventListener('change', applyFilters);
+            document.getElementById('filterType').addEventListener('change', applyFilters);
+            document.getElementById('filterCompletion').addEventListener('change', applyFilters);
+            document.getElementById('filterCaseManager').addEventListener('input', applyFilters);
+            document.getElementById('filterClient').addEventListener('input', applyFilters);
+        }
+
+        async function loadEntries() {
+            try {
                 const { data, error } = await supabase
                     .from('myevolv_entries')
                     .select('*')
                     .order('entry_date', { ascending: false });
 
-                if (!error && data) {
-                    setEntries(data);
-                }
-            };
+                if (error) throw error;
 
-            const handleLogin = async (e) => {
-                e.preventDefault();
-                const email = e.target.email.value;
-                const password = e.target.password.value;
-
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
-                });
-
-                if (error) {
-                    setMessage({ type: 'error', text: error.message });
-                } else {
-                    setMessage({ type: 'success', text: 'Login successful!' });
-                }
-            };
-
-            const handleSignup = async (e) => {
-                e.preventDefault();
-                const email = e.target.email.value;
-                const password = e.target.password.value;
-                const confirmPassword = e.target.confirmPassword.value;
-
-                if (password !== confirmPassword) {
-                    setMessage({ type: 'error', text: 'Passwords do not match!' });
-                    return;
-                }
-
-                if (password.length < 6) {
-                    setMessage({ type: 'error', text: 'Password must be at least 6 characters!' });
-                    return;
-                }
-
-                const { error } = await supabase.auth.signUp({
-                    email,
-                    password
-                });
-
-                if (error) {
-                    setMessage({ type: 'error', text: error.message });
-                } else {
-                    setMessage({ type: 'success', text: 'Account created! You can now log in.' });
-                    setIsSignup(false);
-                }
-            };
-
-            const handleLogout = async () => {
-                await supabase.auth.signOut();
-                setUser(null);
-                setEntries([]);
-            };
-
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-
-                const { data, error } = await supabase
-                    .from('myevolv_entries')
-                    .insert([{
-                        ...formData,
-                        user_id: user.id,
-                        user_email: user.email,
-                        created_at: new Date().toISOString()
-                    }])
-                    .select();
-
-                if (error) {
-                    setMessage({ type: 'error', text: error.message });
-                } else {
-                    setMessage({ type: 'success', text: 'Entry logged successfully!' });
-                    setFormData({
-                        client_id: '',
-                        entry_type: '',
-                        entry_date: new Date().toISOString().split('T')[0],
-                        program: 'PATH',
-                        status: 'completed',
-                        notes: '',
-                        voucher_awarded: false,
-                        voucher_date: null,
-                        voucher_type: '',
-                        voucher_amount: '',
-                        voucher_status: '',
-                        case_conferencing_awarded: false,
-                        subsidy_type: '',
-                        subsidy_provider_status: '',
-                        landlord_name: '',
-                        landlord_phone: '',
-                        landlord_email: '',
-                        property_address: '',
-                        ce_score: '',
-                        myevolv_entry_level: '',
-                        hmis_entered: false,
-                        myevolv_entered: false,
-                        hmis_id: '',
-                        last_service_date: new Date().toISOString().split('T')[0],
-                        case_manager: '',
-                        dob: '',
-                        has_insurance: false,
-                        has_ssn: false
-                    });
-                    fetchEntries();
-                    
-                    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-                }
-            };
-
-            const handleUpdate = async (e) => {
-                e.preventDefault();
-                
-                const { data, error } = await supabase
-                    .from('myevolv_entries')
-                    .update(editingEntry)
-                    .eq('id', editingEntry.id)
-                    .select();
-
-                if (error) {
-                    setMessage({ type: 'error', text: error.message });
-                } else {
-                    setMessage({ type: 'success', text: 'Entry updated successfully!' });
-                    setEditingEntry(null);
-                    fetchEntries();
-                    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-                }
-            };
-
-            const isCEHighPriority = (score) => {
-                if (!score) return false;
-                const num = parseInt(score);
-                return num >= 14 && num <= 16;
-            };
-
-            const getSystemStatus = (entry) => {
-                if (entry.hmis_entered && entry.myevolv_entered) return 'both';
-                if (entry.hmis_entered) return 'hmis_only';
-                if (entry.myevolv_entered) return 'myevolv_only';
-                return 'neither';
-            };
-
-            const filteredEntries = entries.filter(entry => {
-                const search = searchTerm.toLowerCase();
-                const matchesSearch = (
-                    entry.client_id?.toLowerCase().includes(search) ||
-                    entry.entry_type?.toLowerCase().includes(search) ||
-                    entry.program?.toLowerCase().includes(search) ||
-                    entry.hmis_id?.toLowerCase().includes(search) ||
-                    entry.case_manager?.toLowerCase().includes(search) ||
-                    entry.notes?.toLowerCase().includes(search)
-                );
-                
-                let matchesSystem = true;
-                if (systemFilter !== 'all') {
-                    const status = getSystemStatus(entry);
-                    matchesSystem = status === systemFilter;
-                }
-                
-                return matchesSearch && matchesSystem;
-            });
-
-            const stats = {
-                total: entries.length,
-                thisWeek: entries.filter(e => {
-                    const entryDate = new Date(e.entry_date);
-                    const weekAgo = new Date();
-                    weekAgo.setDate(weekAgo.getDate() - 7);
-                    return entryDate >= weekAgo;
-                }).length,
-                thisMonth: entries.filter(e => {
-                    const entryDate = new Date(e.entry_date);
-                    const monthAgo = new Date();
-                    monthAgo.setMonth(monthAgo.getMonth() - 1);
-                    return entryDate >= monthAgo;
-                }).length,
-                hmisOnly: entries.filter(e => e.hmis_entered && !e.myevolv_entered).length,
-                myevolvOnly: entries.filter(e => e.myevolv_entered && !e.hmis_entered).length,
-                both: entries.filter(e => e.hmis_entered && e.myevolv_entered).length,
-                neither: entries.filter(e => !e.hmis_entered && !e.myevolv_entered).length
-            };
-
-            if (loading) {
-                return <div className="login-container">Loading...</div>;
+                allEntries = data || [];
+                updateStats();
+                displayEntries(allEntries);
+            } catch (error) {
+                console.error('Error loading entries:', error);
+                showMessage('Error loading entries: ' + error.message, 'error');
             }
-
-            if (!user) {
-                return (
-                    <div className="login-container">
-                        <div className="login-box">
-                            <h2>MyEvolv Tracker</h2>
-                            <p>{isSignup ? 'Create your account' : 'Track your PATH data entry work'}</p>
-                            
-                            {message.text && (
-                                <div className={`alert alert-${message.type}`}>
-                                    {message.text}
-                                </div>
-                            )}
-                            
-                            {!isSignup ? (
-                                <form onSubmit={handleLogin}>
-                                    <div className="form-group">
-                                        <label className="form-label">Email</label>
-                                        <input type="email" name="email" className="form-input" required />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Password</label>
-                                        <input type="password" name="password" className="form-input" required />
-                                    </div>
-                                    <button type="submit" className="btn btn-primary btn-full">Sign In</button>
-                                    <div className="signup-link">
-                                        Don't have an account? <button type="button" onClick={() => setIsSignup(true)}>Create Account</button>
-                                    </div>
-                                </form>
-                            ) : (
-                                <form onSubmit={handleSignup}>
-                                    <div className="form-group">
-                                        <label className="form-label">Email</label>
-                                        <input type="email" name="email" className="form-input" required />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Password</label>
-                                        <input type="password" name="password" className="form-input" minLength="6" required />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Confirm Password</label>
-                                        <input type="password" name="confirmPassword" className="form-input" minLength="6" required />
-                                    </div>
-                                    <button type="submit" className="btn btn-primary btn-full">Create Account</button>
-                                    <div className="signup-link">
-                                        Already have an account? <button type="button" onClick={() => setIsSignup(false)}>Sign In</button>
-                                    </div>
-                                </form>
-                            )}
-                        </div>
-                    </div>
-                );
-            }
-
-            return (
-                <>
-                    <header className="app-header">
-                        <div className="header-content">
-                            <div className="app-title">
-                                <h1>MyEvolv Entry Tracker</h1>
-                                <span className="badge">v4.0</span>
-                            </div>
-                            <div className="user-info">
-                                <span className="user-email">{user.email}</span>
-                                <button onClick={handleLogout} className="btn btn-secondary">Sign Out</button>
-                            </div>
-                        </div>
-                    </header>
-
-                    <div className="container">
-                        {message.text && (
-                            <div className={`alert alert-${message.type}`}>
-                                {message.text}
-                            </div>
-                        )}
-
-                        <div className="tabs">
-                            <button className={`tab ${activeTab === 'add' ? 'active' : ''}`} onClick={() => setActiveTab('add')}>
-                                Log Entry
-                            </button>
-                            <button className={`tab ${activeTab === 'view' ? 'active' : ''}`} onClick={() => setActiveTab('view')}>
-                                View All Entries
-                            </button>
-                            <button className={`tab ${activeTab === 'reports' ? 'active' : ''}`} onClick={() => setActiveTab('reports')}>
-                                Monthly Reports
-                            </button>
-                        </div>
-
-                        {activeTab === 'add' && (
-                            <div className="card">
-                                <h3>📝 Log New PATH Entry</h3>
-                                <form onSubmit={handleSubmit}>
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label className="form-label">Client ID / Initials</label>
-                                            <input type="text" className="form-input" value={formData.client_id}
-                                                onChange={(e) => setFormData({...formData, client_id: e.target.value})} required />
-                                        </div>
-                                        <div className="form-group">
-                                            <label className="form-label">HMIS ID</label>
-                                            <input type="text" className="form-input" value={formData.hmis_id}
-                                                onChange={(e) => setFormData({...formData, hmis_id: e.target.value})} />
-                                        </div>
-                                        <div className="form-group">
-                                            <label className="form-label">CE Score</label>
-                                            <input type="text" className="form-input" value={formData.ce_score}
-                                                onChange={(e) => setFormData({...formData, ce_score: e.target.value})} 
-                                                placeholder="14-16 = HIGH PRIORITY" />
-                                        </div>
-                                    </div>
-
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label className="form-label">Date of Birth</label>
-                                            <input type="date" className="form-input" value={formData.dob}
-                                                onChange={(e) => setFormData({...formData, dob: e.target.value})} />
-                                        </div>
-                                        <div className="form-group">
-                                            <label className="form-label">Case Manager</label>
-                                            <input type="text" className="form-input" value={formData.case_manager}
-                                                onChange={(e) => setFormData({...formData, case_manager: e.target.value})}
-                                                placeholder="Your name or colleague's name" />
-                                        </div>
-                                        <div className="form-group">
-                                            <label className="form-label">Last Service Date</label>
-                                            <input type="date" className="form-input" value={formData.last_service_date}
-                                                onChange={(e) => setFormData({...formData, last_service_date: e.target.value})} />
-                                        </div>
-                                    </div>
-
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
-                                                <input type="checkbox" checked={formData.has_insurance}
-                                                    onChange={(e) => setFormData({...formData, has_insurance: e.target.checked})}
-                                                    style={{width: '18px', height: '18px', cursor: 'pointer'}} />
-                                                <span className="form-label" style={{margin: 0}}>Has Insurance</span>
-                                            </label>
-                                        </div>
-                                        <div className="form-group">
-                                            <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
-                                                <input type="checkbox" checked={formData.has_ssn}
-                                                    onChange={(e) => setFormData({...formData, has_ssn: e.target.checked})}
-                                                    style={{width: '18px', height: '18px', cursor: 'pointer'}} />
-                                                <span className="form-label" style={{margin: 0}}>Has Social Security Info</span>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label className="form-label">Entry Type</label>
-                                            <select className="form-select" value={formData.entry_type}
-                                                onChange={(e) => setFormData({...formData, entry_type: e.target.value})} required>
-                                                <option value="">Select type...</option>
-                                                <option value="full_enrollment">Full PATH Enrollment</option>
-                                                <option value="partial_enrollment">Partial Enrollment</option>
-                                                <option value="ce_standalone">Stand-Alone CE Assessment (required for PATH)</option>
-                                                <option value="ce_with_enrollment">CE + Enrollment</option>
-                                                <option value="service">Service Provision</option>
-                                                <option value="case_note">Case Note/Contact</option>
-                                                <option value="voucher_issued">Voucher Issued</option>
-                                                <option value="follow_up">Follow-up</option>
-                                                <option value="discharge">Discharge</option>
-                                                <option value="other">Other</option>
-                                            </select>
-                                        </div>
-                                        <div className="form-group">
-                                            <label className="form-label">MyEvolv Entry Level</label>
-                                            <select className="form-select" value={formData.myevolv_entry_level}
-                                                onChange={(e) => setFormData({...formData, myevolv_entry_level: e.target.value})}>
-                                                <option value="">Select level...</option>
-                                                <option value="full_enrollment">Full Enrollment</option>
-                                                <option value="service_only">Service Only</option>
-                                                <option value="ce_only">Coordinated Entry Only</option>
-                                                <option value="not_entered">Not Entered Yet</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label className="form-label">Entry Date</label>
-                                            <input type="date" className="form-input" value={formData.entry_date}
-                                                onChange={(e) => setFormData({...formData, entry_date: e.target.value})} required />
-                                        </div>
-                                        <div className="form-group">
-                                            <label className="form-label">Status</label>
-                                            <select className="form-select" value={formData.status}
-                                                onChange={(e) => setFormData({...formData, status: e.target.value})}>
-                                                <option value="completed">Completed</option>
-                                                <option value="pending">Pending</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
-                                                <input type="checkbox" checked={formData.hmis_entered}
-                                                    onChange={(e) => setFormData({...formData, hmis_entered: e.target.checked})}
-                                                    style={{width: '18px', height: '18px', cursor: 'pointer'}} />
-                                                <span className="form-label" style={{margin: 0}}>Entered into HMIS</span>
-                                            </label>
-                                        </div>
-                                        <div className="form-group">
-                                            <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
-                                                <input type="checkbox" checked={formData.myevolv_entered}
-                                                    onChange={(e) => setFormData({...formData, myevolv_entered: e.target.checked})}
-                                                    style={{width: '18px', height: '18px', cursor: 'pointer'}} />
-                                                <span className="form-label" style={{margin: 0}}>Entered into MyEvolv</span>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label className="form-label">Notes (Optional)</label>
-                                        <textarea className="form-textarea" value={formData.notes}
-                                            onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                                            placeholder="Add any additional details or issues..." />
-                                    </div>
-
-                                    <div className="form-group" style={{marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--color-border)'}}>
-                                        <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
-                                            <input type="checkbox" checked={formData.voucher_awarded}
-                                                onChange={(e) => setFormData({...formData, voucher_awarded: e.target.checked})}
-                                                style={{width: '18px', height: '18px', cursor: 'pointer'}} />
-                                            <span className="form-label" style={{margin: 0}}>🎫 Voucher Awarded (HIGH PRIORITY)</span>
-                                        </label>
-                                    </div>
-
-                                    {formData.voucher_awarded && (
-                                        <>
-                                            <div className="form-group">
-                                                <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
-                                                    <input type="checkbox" checked={formData.case_conferencing_awarded}
-                                                        onChange={(e) => setFormData({...formData, case_conferencing_awarded: e.target.checked})}
-                                                        style={{width: '18px', height: '18px', cursor: 'pointer'}} />
-                                                    <span className="form-label" style={{margin: 0}}>Awarded through Case Conferencing</span>
-                                                </label>
-                                            </div>
-
-                                            <div className="form-row">
-                                                <div className="form-group">
-                                                    <label className="form-label">Voucher Date Awarded</label>
-                                                    <input type="date" className="form-input" value={formData.voucher_date || ''}
-                                                        onChange={(e) => setFormData({...formData, voucher_date: e.target.value || null})}
-                                                        required={formData.voucher_awarded} />
-                                                </div>
-                                                <div className="form-group">
-                                                    <label className="form-label">Subsidy Type</label>
-                                                    <select className="form-select" value={formData.subsidy_type}
-                                                        onChange={(e) => setFormData({...formData, subsidy_type: e.target.value})}>
-                                                        <option value="">Select subsidy...</option>
-                                                        <option value="PSH">PSH (Permanent Supportive Housing)</option>
-                                                        <option value="Rapid Rehousing">Rapid Rehousing</option>
-                                                        <option value="City of Bangor">City of Bangor</option>
-                                                        <option value="Section 8">Section 8</option>
-                                                        <option value="Other">Other</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="form-row">
-                                                <div className="form-group">
-                                                    <label className="form-label">Voucher Type</label>
-                                                    <select className="form-select" value={formData.voucher_type}
-                                                        onChange={(e) => setFormData({...formData, voucher_type: e.target.value})}
-                                                        required={formData.voucher_awarded}>
-                                                        <option value="">Select type...</option>
-                                                        <option value="rapid_rehousing">Rapid Rehousing</option>
-                                                        <option value="permanent_supportive">Permanent Supportive Housing</option>
-                                                        <option value="emergency_housing">Emergency Housing</option>
-                                                        <option value="transitional">Transitional Housing</option>
-                                                        <option value="rental_assistance">Rental Assistance</option>
-                                                        <option value="other">Other</option>
-                                                    </select>
-                                                </div>
-                                                <div className="form-group">
-                                                    <label className="form-label">Voucher Amount/Value</label>
-                                                    <input type="text" className="form-input" value={formData.voucher_amount}
-                                                        onChange={(e) => setFormData({...formData, voucher_amount: e.target.value})}
-                                                        placeholder="e.g., $1,200/month" />
-                                                </div>
-                                            </div>
-
-                                            <div className="form-group">
-                                                <label className="form-label">Subsidy Provider Status</label>
-                                                <select className="form-select" value={formData.subsidy_provider_status}
-                                                    onChange={(e) => setFormData({...formData, subsidy_provider_status: e.target.value})}>
-                                                    <option value="">Select status...</option>
-                                                    <option value="pending">Pending Subsidy Approval</option>
-                                                    <option value="approved">Approved by Subsidy</option>
-                                                    <option value="denied">Denied by Subsidy</option>
-                                                    <option value="housed">Client Housed</option>
-                                                </select>
-                                            </div>
-
-                                            {formData.subsidy_provider_status === 'housed' && (
-                                                <>
-                                                    <h4 style={{marginTop: '1.5rem', marginBottom: '1rem', color: 'var(--color-success)'}}>🏠 Landlord Information</h4>
-                                                    <div className="form-row">
-                                                        <div className="form-group">
-                                                            <label className="form-label">Landlord Name</label>
-                                                            <input type="text" className="form-input" value={formData.landlord_name}
-                                                                onChange={(e) => setFormData({...formData, landlord_name: e.target.value})} />
-                                                        </div>
-                                                        <div className="form-group">
-                                                            <label className="form-label">Landlord Phone</label>
-                                                            <input type="tel" className="form-input" value={formData.landlord_phone}
-                                                                onChange={(e) => setFormData({...formData, landlord_phone: e.target.value})} />
-                                                        </div>
-                                                    </div>
-                                                    <div className="form-row">
-                                                        <div className="form-group">
-                                                            <label className="form-label">Landlord Email</label>
-                                                            <input type="email" className="form-input" value={formData.landlord_email}
-                                                                onChange={(e) => setFormData({...formData, landlord_email: e.target.value})} />
-                                                        </div>
-                                                        <div className="form-group">
-                                                            <label className="form-label">Property Address</label>
-                                                            <input type="text" className="form-input" value={formData.property_address}
-                                                                onChange={(e) => setFormData({...formData, property_address: e.target.value})} />
-                                                        </div>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </>
-                                    )}
-
-                                    <button type="submit" className="btn btn-primary">Save Entry</button>
-                                </form>
-                            </div>
-                        )}
-
-                        {activeTab === 'view' && (
-                            <>
-                                {selectedEntry && (
-                                    <div className="modal-overlay" onClick={() => setSelectedEntry(null)}>
-                                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                                            <div className="modal-header">
-                                                <h3>Client Details: {selectedEntry.client_id}</h3>
-                                                <div style={{display: 'flex', gap: '0.5rem'}}>
-                                                    <button className="btn btn-primary btn-sm" onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setEditingEntry({...selectedEntry});
-                                                        setSelectedEntry(null);
-                                                    }}>✏️ Edit</button>
-                                                    <button className="modal-close" onClick={() => setSelectedEntry(null)}>×</button>
-                                                </div>
-                                            </div>
-                                            <div className="modal-body">
-                                                <div className="detail-section">
-                                                    <h4>Basic Information</h4>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Client ID</div>
-                                                        <div className="detail-value">{selectedEntry.client_id}</div>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">HMIS ID</div>
-                                                        <div className="detail-value">{selectedEntry.hmis_id || 'Not provided'}</div>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Date of Birth</div>
-                                                        <div className="detail-value">{selectedEntry.dob || 'Not provided'}</div>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">CE Score</div>
-                                                        <div className="detail-value">
-                                                            {selectedEntry.ce_score ? (
-                                                                isCEHighPriority(selectedEntry.ce_score) ? 
-                                                                <span className="ce-high-priority">🔥 {selectedEntry.ce_score} (HIGH PRIORITY)</span> : 
-                                                                selectedEntry.ce_score
-                                                            ) : 'Not assessed'}
-                                                        </div>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Case Manager</div>
-                                                        <div className="detail-value">{selectedEntry.case_manager || 'Not assigned'}</div>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Entry Date</div>
-                                                        <div className="detail-value">{selectedEntry.entry_date}</div>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Last Service Date</div>
-                                                        <div className="detail-value">{selectedEntry.last_service_date || 'Not recorded'}</div>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Entry Type</div>
-                                                        <div className="detail-value">{selectedEntry.entry_type}</div>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">MyEvolv Entry Level</div>
-                                                        <div className="detail-value">{selectedEntry.myevolv_entry_level || 'Not specified'}</div>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Status</div>
-                                                        <div className="detail-value">{selectedEntry.status}</div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="detail-section">
-                                                    <h4>Documentation Status</h4>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Has Insurance</div>
-                                                        <div className="detail-value">
-                                                            {selectedEntry.has_insurance ? '✓ Yes' : '✗ No'}
-                                                        </div>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Has Social Security Info</div>
-                                                        <div className="detail-value">
-                                                            {selectedEntry.has_ssn ? '✓ Yes' : '✗ No'}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="detail-section">
-                                                    <h4>System Entry Status</h4>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Entered in HMIS</div>
-                                                        <div className="detail-value">{selectedEntry.hmis_entered ? '✓ Yes' : '✗ No'}</div>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Entered in MyEvolv</div>
-                                                        <div className="detail-value">{selectedEntry.myevolv_entered ? '✓ Yes' : '✗ No'}</div>
-                                                    </div>
-                                                </div>
-
-                                                {selectedEntry.voucher_awarded && (
-                                                    <div className="detail-section">
-                                                        <h4>🎫 Voucher Information</h4>
-                                                        <div className="detail-row">
-                                                            <div className="detail-label">Case Conferencing</div>
-                                                            <div className="detail-value">{selectedEntry.case_conferencing_awarded ? '✓ Yes' : '✗ No'}</div>
-                                                        </div>
-                                                        <div className="detail-row">
-                                                            <div className="detail-label">Voucher Date</div>
-                                                            <div className="detail-value">{selectedEntry.voucher_date || 'Not specified'}</div>
-                                                        </div>
-                                                        <div className="detail-row">
-                                                            <div className="detail-label">Subsidy Type</div>
-                                                            <div className="detail-value">{selectedEntry.subsidy_type || 'Not specified'}</div>
-                                                        </div>
-                                                        <div className="detail-row">
-                                                            <div className="detail-label">Voucher Type</div>
-                                                            <div className="detail-value">{selectedEntry.voucher_type || 'Not specified'}</div>
-                                                        </div>
-                                                        <div className="detail-row">
-                                                            <div className="detail-label">Voucher Amount</div>
-                                                            <div className="detail-value">{selectedEntry.voucher_amount || 'Not specified'}</div>
-                                                        </div>
-                                                        <div className="detail-row">
-                                                            <div className="detail-label">Subsidy Provider Status</div>
-                                                            <div className="detail-value">{selectedEntry.subsidy_provider_status || 'Pending'}</div>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {selectedEntry.subsidy_provider_status === 'housed' && (
-                                                    <div className="detail-section">
-                                                        <h4>🏠 Landlord Information</h4>
-                                                        <div className="detail-row">
-                                                            <div className="detail-label">Landlord Name</div>
-                                                            <div className="detail-value">{selectedEntry.landlord_name || 'Not provided'}</div>
-                                                        </div>
-                                                        <div className="detail-row">
-                                                            <div className="detail-label">Landlord Phone</div>
-                                                            <div className="detail-value">{selectedEntry.landlord_phone || 'Not provided'}</div>
-                                                        </div>
-                                                        <div className="detail-row">
-                                                            <div className="detail-label">Landlord Email</div>
-                                                            <div className="detail-value">{selectedEntry.landlord_email || 'Not provided'}</div>
-                                                        </div>
-                                                        <div className="detail-row">
-                                                            <div className="detail-label">Property Address</div>
-                                                            <div className="detail-value">{selectedEntry.property_address || 'Not provided'}</div>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {selectedEntry.notes && (
-                                                    <div className="detail-section">
-                                                        <h4>📝 Notes</h4>
-                                                        <div style={{padding: '1rem', background: 'var(--color-bg)', borderRadius: '6px', fontFamily: 'var(--font-mono)', fontSize: '0.875rem', whiteSpace: 'pre-wrap'}}>
-                                                            {selectedEntry.notes}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                <div className="detail-section">
-                                                    <h4>Tracking Information</h4>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Logged By</div>
-                                                        <div className="detail-value">{selectedEntry.user_email}</div>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <div className="detail-label">Created At</div>
-                                                        <div className="detail-value">{new Date(selectedEntry.created_at).toLocaleString()}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="system-filter-buttons">
-                                    <button className={`filter-btn ${systemFilter === 'all' ? 'active' : ''}`}
-                                        onClick={() => setSystemFilter('all')}>
-                                        All Entries ({entries.length})
-                                    </button>
-                                    <button className={`filter-btn ${systemFilter === 'hmis_only' ? 'active' : ''}`}
-                                        onClick={() => setSystemFilter('hmis_only')}>
-                                        HMIS Only ({stats.hmisOnly})
-                                    </button>
-                                    <button className={`filter-btn ${systemFilter === 'myevolv_only' ? 'active' : ''}`}
-                                        onClick={() => setSystemFilter('myevolv_only')}>
-                                        MyEvolv Only ({stats.myevolvOnly})
-                                    </button>
-                                    <button className={`filter-btn ${systemFilter === 'both' ? 'active' : ''}`}
-                                        onClick={() => setSystemFilter('both')}>
-                                        Both Systems ({stats.both})
-                                    </button>
-                                    <button className={`filter-btn ${systemFilter === 'neither' ? 'active' : ''}`}
-                                        onClick={() => setSystemFilter('neither')}>
-                                        Neither System ({stats.neither})
-                                    </button>
-                                </div>
-
-                                <div className="stats-grid">
-                                    <div className="stat-card">
-                                        <div className="stat-label">Total Entries</div>
-                                        <div className="stat-value">{stats.total}</div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="stat-label">This Week</div>
-                                        <div className="stat-value">{stats.thisWeek}</div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="stat-label">This Month</div>
-                                        <div className="stat-value">{stats.thisMonth}</div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="stat-label">HMIS Only</div>
-                                        <div className="stat-value">{stats.hmisOnly}</div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="stat-label">MyEvolv Only</div>
-                                        <div className="stat-value">{stats.myevolvOnly}</div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="stat-label">Both Systems</div>
-                                        <div className="stat-value">{stats.both}</div>
-                                    </div>
-                                </div>
-
-                                <div className="table-container">
-                                    <div className="table-header">
-                                        <h3>All Entries (Click to view details)</h3>
-                                        <div className="search-box">
-                                            <input type="text" className="search-input" placeholder="Search entries..."
-                                                value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                                        </div>
-                                    </div>
-                                    
-                                    {filteredEntries.length === 0 ? (
-                                        <div className="empty-state">
-                                            <div className="empty-state-icon">📋</div>
-                                            <p>No entries found.</p>
-                                        </div>
-                                    ) : (
-                                        <div className="table-wrapper">
-                                            <table>
-                                                <thead>
-                                                    <tr>
-                                                        <th>Date</th>
-                                                        <th>Client ID</th>
-                                                        <th>Case Manager</th>
-                                                        <th>Entry Type</th>
-                                                        <th>HMIS</th>
-                                                        <th>MyEvolv</th>
-                                                        <th>CE Score</th>
-                                                        <th>Docs</th>
-                                                        <th>Voucher</th>
-                                                        <th>Status</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {filteredEntries.map((entry) => (
-                                                        <tr key={entry.id} 
-                                                            onClick={() => setSelectedEntry(entry)}
-                                                            style={entry.voucher_awarded ? {background: 'rgba(237, 137, 54, 0.05)', borderLeft: '3px solid var(--color-warning)'} : {}}>
-                                                            <td className="mono">{entry.entry_date}</td>
-                                                            <td className="mono">{entry.client_id}</td>
-                                                            <td>{entry.case_manager || '-'}</td>
-                                                            <td>{entry.entry_type}</td>
-                                                            <td style={{textAlign: 'center'}}>{entry.hmis_entered ? '✓' : '-'}</td>
-                                                            <td style={{textAlign: 'center'}}>{entry.myevolv_entered ? '✓' : '-'}</td>
-                                                            <td>
-                                                                {entry.ce_score ? (
-                                                                    isCEHighPriority(entry.ce_score) ? 
-                                                                    <span className="ce-high-priority">🔥 {entry.ce_score}</span> : 
-                                                                    entry.ce_score
-                                                                ) : '-'}
-                                                            </td>
-                                                            <td style={{textAlign: 'center'}}>
-                                                                {entry.has_insurance && entry.has_ssn ? '✓✓' : 
-                                                                 entry.has_insurance || entry.has_ssn ? '✓' : '-'}
-                                                            </td>
-                                                            <td style={{textAlign: 'center'}}>
-                                                                {entry.voucher_awarded ? (
-                                                                    <span title={`${entry.subsidy_type || entry.voucher_type} - ${entry.subsidy_provider_status}`} style={{fontSize: '1.2rem'}}>🎫</span>
-                                                                ) : '-'}
-                                                            </td>
-                                                            <td>
-                                                                <span className={`status-badge status-${entry.status}`}>{entry.status}</span>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    )}
-                                </div>
-                            </>
-                        )}
-
-                        {activeTab === 'reports' && (
-                            <>
-                                <div className="card">
-                                    <h3>📊 PATH Monthly Reports</h3>
-                                    <div className="form-row" style={{marginBottom: '2rem'}}>
-                                        <div className="form-group">
-                                            <label className="form-label">Start Date</label>
-                                            <input type="date" className="form-input" id="report-start-date"
-                                                defaultValue={new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]} />
-                                        </div>
-                                        <div className="form-group">
-                                            <label className="form-label">End Date</label>
-                                            <input type="date" className="form-input" id="report-end-date"
-                                                defaultValue={new Date().toISOString().split('T')[0]} />
-                                        </div>
-                                    </div>
-                                    <div className="form-row" style={{marginBottom: '2rem'}}>
-                                        <div className="form-group">
-                                            <label className="form-label">Filter by System Entry</label>
-                                            <select className="form-select" id="report-entry-status">
-                                                <option value="">All Entries</option>
-                                                <option value="hmis_only">HMIS Only</option>
-                                                <option value="myevolv_only">MyEvolv Only</option>
-                                                <option value="both">Both Systems</option>
-                                                <option value="neither">Neither System</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div style={{display: 'flex', gap: '1rem'}}>
-                                        <button className="btn btn-primary" onClick={() => {
-                                        const startDate = document.getElementById('report-start-date').value;
-                                        const endDate = document.getElementById('report-end-date').value;
-                                        const statusFilter = document.getElementById('report-entry-status').value;
-                                        
-                                        let filtered = entries.filter(e => {
-                                            const eDate = new Date(e.entry_date);
-                                            return eDate >= new Date(startDate) && eDate <= new Date(endDate);
-                                        });
-
-                                        if (statusFilter) {
-                                            if (statusFilter === 'hmis_only') filtered = filtered.filter(e => e.hmis_entered && !e.myevolv_entered);
-                                            else if (statusFilter === 'myevolv_only') filtered = filtered.filter(e => e.myevolv_entered && !e.hmis_entered);
-                                            else if (statusFilter === 'both') filtered = filtered.filter(e => e.hmis_entered && e.myevolv_entered);
-                                            else if (statusFilter === 'neither') filtered = filtered.filter(e => !e.hmis_entered && !e.myevolv_entered);
-                                        }
-                                        
-                                        const uniqueClients = [...new Set(filtered.map(e => e.client_id))];
-                                        const vouchersIssued = filtered.filter(e => e.voucher_awarded).length;
-                                        const housed = filtered.filter(e => e.subsidy_provider_status === 'housed').length;
-                                        const highPriority = filtered.filter(e => isCEHighPriority(e.ce_score)).length;
-                                        const hasInsurance = filtered.filter(e => e.has_insurance).length;
-                                        const hasSSN = filtered.filter(e => e.has_ssn).length;
-                                        const fullyDocumented = filtered.filter(e => e.has_insurance && e.has_ssn).length;
-                                        
-                                        const caseManagers = {};
-                                        filtered.forEach(e => {
-                                            if (e.case_manager) {
-                                                caseManagers[e.case_manager] = (caseManagers[e.case_manager] || 0) + 1;
-                                            }
-                                        });
-                                        
-                                        const report = `PATH MONTHLY REPORT
-Period: ${startDate} to ${endDate}
-Generated: ${new Date().toLocaleDateString()}
-${statusFilter ? `System Filter: ${statusFilter}` : ''}
-
-=================================
-SUMMARY STATISTICS
-=================================
-Total Unique Clients: ${uniqueClients.length}
-Total Interactions: ${filtered.length}
-Vouchers Awarded: ${vouchersIssued}
-Clients Housed: ${housed}
-High Priority (CE 14-16): ${highPriority}
-
-SYSTEM ENTRY STATUS:
-- Entered in HMIS: ${filtered.filter(e => e.hmis_entered).length}
-- Entered in MyEvolv: ${filtered.filter(e => e.myevolv_entered).length}
-- Entered in Both: ${filtered.filter(e => e.hmis_entered && e.myevolv_entered).length}
-- Not Entered: ${filtered.filter(e => !e.hmis_entered && !e.myevolv_entered).length}
-
-DOCUMENTATION STATUS:
-- Has Insurance: ${hasInsurance}
-- Has Social Security: ${hasSSN}
-- Fully Documented: ${fullyDocumented}
-
-CASE MANAGERS:
-${Object.entries(caseManagers).map(([name, count]) => `- ${name}: ${count} clients`).join('\n')}
-
-=================================
-DETAILED CLIENT LIST
-=================================
-${uniqueClients.map(clientId => {
-    const clientEntries = filtered.filter(e => e.client_id === clientId);
-    const latest = clientEntries[0];
-    const hasVoucher = clientEntries.some(e => e.voucher_awarded);
-    const voucherInfo = hasVoucher ? clientEntries.find(e => e.voucher_awarded) : null;
-    
-    return `Client: ${clientId} ${isCEHighPriority(latest.ce_score) ? '🔥 HIGH PRIORITY' : ''}
-HMIS ID: ${latest.hmis_id || 'Not provided'}
-DOB: ${latest.dob || 'Not provided'}
-CE Score: ${latest.ce_score || 'Not assessed'}
-Case Manager: ${latest.case_manager || 'Not assigned'}
-Last Service: ${latest.last_service_date || 'Not recorded'}
-Insurance: ${latest.has_insurance ? 'Yes' : 'No'} | Social Security: ${latest.has_ssn ? 'Yes' : 'No'}
-System Entry: ${latest.hmis_entered ? 'HMIS' : ''} ${latest.myevolv_entered ? 'MyEvolv' : ''} ${!latest.hmis_entered && !latest.myevolv_entered ? 'NOT ENTERED' : ''}
-Total Interactions: ${clientEntries.length}
-Entry Types: ${[...new Set(clientEntries.map(e => e.entry_type))].join(', ')}
-${voucherInfo ? `
-Voucher Info:
-- Type: ${voucherInfo.subsidy_type || voucherInfo.voucher_type}
-- Status: ${voucherInfo.subsidy_provider_status}
-- Case Conferencing: ${voucherInfo.case_conferencing_awarded ? 'Yes' : 'No'}
-- Date Awarded: ${voucherInfo.voucher_date}
-${voucherInfo.subsidy_provider_status === 'housed' && voucherInfo.landlord_name ? `
-Landlord: ${voucherInfo.landlord_name}
-Phone: ${voucherInfo.landlord_phone || 'N/A'}
-Address: ${voucherInfo.property_address || 'N/A'}` : ''}` : ''}
----`;
-}).join('\n')}`.trim();
-                                        
-                                        const blob = new Blob([report], { type: 'text/plain' });
-                                        const url = URL.createObjectURL(blob);
-                                        const a = document.createElement('a');
-                                        a.href = url;
-                                        a.download = `path-report-${startDate}-to-${endDate}.txt`;
-                                        a.click();
-                                        URL.revokeObjectURL(url);
-                                        
-                                        setMessage({ type: 'success', text: 'Report downloaded!' });
-                                        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-                                    }}>
-                                        Generate & Download Report
-                                    </button>
-                                    <button className="btn btn-secondary" onClick={() => {
-                                        const startDate = document.getElementById('report-start-date').value;
-                                        const endDate = document.getElementById('report-end-date').value;
-                                        const statusFilter = document.getElementById('report-entry-status').value;
-                                        
-                                        let filtered = entries.filter(e => {
-                                            const eDate = new Date(e.entry_date);
-                                            return eDate >= new Date(startDate) && eDate <= new Date(endDate);
-                                        });
-
-                                        if (statusFilter) {
-                                            if (statusFilter === 'hmis_only') filtered = filtered.filter(e => e.hmis_entered && !e.myevolv_entered);
-                                            else if (statusFilter === 'myevolv_only') filtered = filtered.filter(e => e.myevolv_entered && !e.hmis_entered);
-                                            else if (statusFilter === 'both') filtered = filtered.filter(e => e.hmis_entered && e.myevolv_entered);
-                                            else if (statusFilter === 'neither') filtered = filtered.filter(e => !e.hmis_entered && !e.myevolv_entered);
-                                        }
-
-                                        const headers = [
-                                            'Client ID', 'HMIS ID', 'DOB', 'CE Score', 'Case Manager', 'Entry Date', 'Last Service Date',
-                                            'Entry Type', 'MyEvolv Entry Level', 'Status', 'HMIS Entered', 'MyEvolv Entered',
-                                            'Has Insurance', 'Has SSN',
-                                            'Voucher Awarded', 'Case Conferencing', 'Voucher Date', 'Subsidy Type', 
-                                            'Voucher Type', 'Voucher Amount', 'Subsidy Provider Status',
-                                            'Landlord Name', 'Landlord Phone', 'Landlord Email', 'Property Address',
-                                            'Notes', 'Logged By', 'Created At'
-                                        ];
-
-                                        const rows = filtered.map(e => [
-                                            e.client_id || '',
-                                            e.hmis_id || '',
-                                            e.dob || '',
-                                            e.ce_score || '',
-                                            e.case_manager || '',
-                                            e.entry_date || '',
-                                            e.last_service_date || '',
-                                            e.entry_type || '',
-                                            e.myevolv_entry_level || '',
-                                            e.status || '',
-                                            e.hmis_entered ? 'Yes' : 'No',
-                                            e.myevolv_entered ? 'Yes' : 'No',
-                                            e.has_insurance ? 'Yes' : 'No',
-                                            e.has_ssn ? 'Yes' : 'No',
-                                            e.voucher_awarded ? 'Yes' : 'No',
-                                            e.case_conferencing_awarded ? 'Yes' : 'No',
-                                            e.voucher_date || '',
-                                            e.subsidy_type || '',
-                                            e.voucher_type || '',
-                                            e.voucher_amount || '',
-                                            e.subsidy_provider_status || '',
-                                            e.landlord_name || '',
-                                            e.landlord_phone || '',
-                                            e.landlord_email || '',
-                                            e.property_address || '',
-                                            e.notes ? e.notes.replace(/"/g, '""') : '',
-                                            e.user_email || '',
-                                            e.created_at ? new Date(e.created_at).toLocaleString() : ''
-                                        ]);
-
-                                        const escapeCSV = (value) => {
-                                            if (value === null || value === undefined) return '';
-                                            const str = String(value);
-                                            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-                                                return `"${str.replace(/"/g, '""')}"`;
-                                            }
-                                            return str;
-                                        };
-
-                                        const csvContent = [
-                                            headers.map(escapeCSV).join(','),
-                                            ...rows.map(row => row.map(escapeCSV).join(','))
-                                        ].join('\n');
-
-                                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                                        const url = URL.createObjectURL(blob);
-                                        const a = document.createElement('a');
-                                        a.href = url;
-                                        a.download = `path-report-${startDate}-to-${endDate}.csv`;
-                                        a.click();
-                                        URL.revokeObjectURL(url);
-
-                                        setMessage({ type: 'success', text: 'CSV exported successfully!' });
-                                        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-                                    }}>
-                                        Export as CSV
-                                    </button>
-                                    </div>
-                                </div>
-
-                                <div className="table-container">
-                                    <div className="table-header">
-                                        <h3>🎫 High Priority: Clients with Vouchers</h3>
-                                    </div>
-                                    
-                                    {entries.filter(e => e.voucher_awarded).length === 0 ? (
-                                        <div className="empty-state">
-                                            <div className="empty-state-icon">🎫</div>
-                                            <p>No vouchers awarded yet</p>
-                                        </div>
-                                    ) : (
-                                        <div className="table-wrapper">
-                                            <table>
-                                                <thead>
-                                                    <tr>
-                                                        <th>Client ID</th>
-                                                        <th>Case Manager</th>
-                                                        <th>Subsidy Type</th>
-                                                        <th>Provider Status</th>
-                                                        <th>Case Conf.</th>
-                                                        <th>Voucher Date</th>
-                                                        <th>Landlord</th>
-                                                        <th>Property</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {entries.filter(e => e.voucher_awarded).map((entry) => (
-                                                        <tr key={entry.id} style={{background: 'rgba(237, 137, 54, 0.05)'}}
-                                                            onClick={() => setSelectedEntry(entry)}>
-                                                            <td className="mono" style={{fontWeight: '600'}}>{entry.client_id}</td>
-                                                            <td>{entry.case_manager || '-'}</td>
-                                                            <td>{entry.subsidy_type || entry.voucher_type}</td>
-                                                            <td>
-                                                                <span className={`status-badge status-${entry.subsidy_provider_status === 'housed' ? 'completed' : 'pending'}`}>
-                                                                    {entry.subsidy_provider_status || 'pending'}
-                                                                </span>
-                                                            </td>
-                                                            <td style={{textAlign: 'center'}}>{entry.case_conferencing_awarded ? '✓' : '-'}</td>
-                                                            <td className="mono">{entry.voucher_date}</td>
-                                                            <td>{entry.landlord_name || '-'}</td>
-                                                            <td>{entry.property_address || '-'}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </>
-            );
         }
 
-        ReactDOM.render(<App />, document.getElementById('root'));
+        function updateStats() {
+            const total = allEntries.length;
+            const enrollments = allEntries.filter(e => e.entry_type === 'enrollment').length;
+            const housing = allEntries.filter(e => e.entry_type === 'housing_voucher').length;
+            const followups = allEntries.filter(e => e.entry_type === 'followup').length;
+            
+            const currentMonth = new Date().toISOString().slice(0, 7);
+            const thisMonth = allEntries.filter(e => e.entry_date && e.entry_date.startsWith(currentMonth)).length;
+
+            document.getElementById('totalEntries').textContent = total;
+            document.getElementById('totalEnrollments').textContent = enrollments;
+            document.getElementById('totalHousing').textContent = housing;
+            document.getElementById('totalFollowups').textContent = followups;
+            document.getElementById('currentMonth').textContent = thisMonth;
+        }
+
+        function displayEntries(entries) {
+            const tbody = document.getElementById('entriesTableBody');
+            
+            if (entries.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px;">No entries found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = entries.map(entry => `
+                <tr onclick="openEditModal('${entry.id}')">
+                    <td>${formatDate(entry.entry_date)}</td>
+                    <td>${entry.client_name}</td>
+                    <td>${formatDate(entry.dob)}</td>
+                    <td>${entry.case_manager || '-'}</td>
+                    <td><span class="badge badge-${entry.entry_type}">${formatType(entry.entry_type)}</span></td>
+                    <td>${formatDate(entry.last_service_date)}</td>
+                    <td><span class="badge badge-${entry.myevolv_completed ? 'yes' : 'no'}">${entry.myevolv_completed ? 'Yes' : 'No'}</span></td>
+                    <td><span class="badge badge-${entry.hmis_completed ? 'yes' : 'no'}">${entry.hmis_completed ? 'Yes' : 'No'}</span></td>
+                    <td><span class="badge badge-${entry.has_insurance ? 'yes' : 'no'}">${entry.has_insurance ? 'Yes' : 'No'}</span></td>
+                    <td><span class="badge badge-${entry.has_ssn ? 'yes' : 'no'}">${entry.has_ssn ? 'Yes' : 'No'}</span></td>
+                    <td><button class="button button-secondary" style="padding: 8px 15px; font-size: 0.9em;" onclick="event.stopPropagation(); openEditModal('${entry.id}')">Edit</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function applyFilters() {
+            const monthFilter = document.getElementById('filterMonth').value;
+            const typeFilter = document.getElementById('filterType').value;
+            const completionFilter = document.getElementById('filterCompletion').value;
+            const caseManagerFilter = document.getElementById('filterCaseManager').value.toLowerCase();
+            const clientFilter = document.getElementById('filterClient').value.toLowerCase();
+
+            let filtered = allEntries;
+
+            if (monthFilter) {
+                filtered = filtered.filter(e => e.entry_date && e.entry_date.startsWith(monthFilter));
+            }
+
+            if (typeFilter) {
+                filtered = filtered.filter(e => e.entry_type === typeFilter);
+            }
+
+            if (completionFilter) {
+                switch(completionFilter) {
+                    case 'both':
+                        filtered = filtered.filter(e => e.myevolv_completed && e.hmis_completed);
+                        break;
+                    case 'myevolv':
+                        filtered = filtered.filter(e => e.myevolv_completed);
+                        break;
+                    case 'hmis':
+                        filtered = filtered.filter(e => e.hmis_completed);
+                        break;
+                    case 'incomplete':
+                        filtered = filtered.filter(e => !e.myevolv_completed || !e.hmis_completed);
+                        break;
+                }
+            }
+
+            if (caseManagerFilter) {
+                filtered = filtered.filter(e => 
+                    e.case_manager && e.case_manager.toLowerCase().includes(caseManagerFilter)
+                );
+            }
+
+            if (clientFilter) {
+                filtered = filtered.filter(e => 
+                    e.client_name && e.client_name.toLowerCase().includes(clientFilter)
+                );
+            }
+
+            displayEntries(filtered);
+        }
+
+        async function handleAddEntry(e) {
+            e.preventDefault();
+
+            const entry = {
+                client_name: document.getElementById('clientName').value,
+                dob: document.getElementById('dateOfBirth').value || null,
+                case_manager: document.getElementById('caseManager').value || null,
+                entry_date: document.getElementById('entryDate').value,
+                entry_type: document.getElementById('entryType').value,
+                last_service_date: document.getElementById('lastServiceDate').value || null,
+                myevolv_completed: document.getElementById('myEvolvCompleted').checked,
+                hmis_completed: document.getElementById('hmisCompleted').checked,
+                has_insurance: document.getElementById('hasInsurance').checked,
+                has_ssn: document.getElementById('hasSsn').checked,
+                notes: document.getElementById('notes').value || null
+            };
+
+            try {
+                const { data, error } = await supabase
+                    .from('myevolv_entries')
+                    .insert([entry])
+                    .select();
+
+                if (error) throw error;
+
+                showMessage('Entry added successfully!', 'success');
+                document.getElementById('entryForm').reset();
+                setDefaultDates();
+                await loadEntries();
+            } catch (error) {
+                console.error('Error adding entry:', error);
+                showMessage('Error adding entry: ' + error.message, 'error');
+            }
+        }
+
+        function openEditModal(id) {
+            const entry = allEntries.find(e => e.id === id);
+            if (!entry) return;
+
+            currentEditId = id;
+            document.getElementById('editEntryId').value = id;
+            document.getElementById('editClientName').value = entry.client_name;
+            document.getElementById('editDateOfBirth').value = entry.dob || '';
+            document.getElementById('editCaseManager').value = entry.case_manager || '';
+            document.getElementById('editEntryDate').value = entry.entry_date;
+            document.getElementById('editEntryType').value = entry.entry_type;
+            document.getElementById('editLastServiceDate').value = entry.last_service_date || '';
+            document.getElementById('editMyEvolvCompleted').checked = entry.myevolv_completed;
+            document.getElementById('editHmisCompleted').checked = entry.hmis_completed;
+            document.getElementById('editHasInsurance').checked = entry.has_insurance;
+            document.getElementById('editHasSsn').checked = entry.has_ssn;
+            document.getElementById('editNotes').value = entry.notes || '';
+
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            currentEditId = null;
+        }
+
+        async function handleEditEntry(e) {
+            e.preventDefault();
+
+            const entry = {
+                client_name: document.getElementById('editClientName').value,
+                dob: document.getElementById('editDateOfBirth').value || null,
+                case_manager: document.getElementById('editCaseManager').value || null,
+                entry_date: document.getElementById('editEntryDate').value,
+                entry_type: document.getElementById('editEntryType').value,
+                last_service_date: document.getElementById('editLastServiceDate').value || null,
+                myevolv_completed: document.getElementById('editMyEvolvCompleted').checked,
+                hmis_completed: document.getElementById('editHmisCompleted').checked,
+                has_insurance: document.getElementById('editHasInsurance').checked,
+                has_ssn: document.getElementById('editHasSsn').checked,
+                notes: document.getElementById('editNotes').value || null
+            };
+
+            try {
+                const { error } = await supabase
+                    .from('myevolv_entries')
+                    .update(entry)
+                    .eq('id', currentEditId);
+
+                if (error) throw error;
+
+                showMessage('Entry updated successfully!', 'success');
+                closeEditModal();
+                await loadEntries();
+            } catch (error) {
+                console.error('Error updating entry:', error);
+                showMessage('Error updating entry: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteEntry() {
+            if (!confirm('Are you sure you want to delete this entry? This cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('myevolv_entries')
+                    .delete()
+                    .eq('id', currentEditId);
+
+                if (error) throw error;
+
+                showMessage('Entry deleted successfully!', 'success');
+                closeEditModal();
+                await loadEntries();
+            } catch (error) {
+                console.error('Error deleting entry:', error);
+                showMessage('Error deleting entry: ' + error.message, 'error');
+            }
+        }
+
+        async function generateReport() {
+            const month = document.getElementById('reportMonth').value;
+            const typeFilter = document.getElementById('reportType').value;
+            
+            if (!month) {
+                alert('Please select a month');
+                return;
+            }
+
+            let filtered = allEntries.filter(e => e.entry_date && e.entry_date.startsWith(month));
+            
+            if (typeFilter) {
+                filtered = filtered.filter(e => e.entry_type === typeFilter);
+            }
+
+            const enrollments = filtered.filter(e => e.entry_type === 'enrollment');
+            const housing = filtered.filter(e => e.entry_type === 'housing_voucher');
+            const followups = filtered.filter(e => e.entry_type === 'followup');
+
+            const myEvolvComplete = filtered.filter(e => e.myevolv_completed).length;
+            const hmisComplete = filtered.filter(e => e.hmis_completed).length;
+            const bothComplete = filtered.filter(e => e.myevolv_completed && e.hmis_completed).length;
+
+            const reportHtml = `
+                <div class="report-section">
+                    <h3>📅 Report for ${formatMonthYear(month)} ${typeFilter ? '- ' + formatType(typeFilter) + ' Only' : ''}</h3>
+                    <p style="color: #666; margin-bottom: 20px;">Generated on ${new Date().toLocaleDateString()}</p>
+                </div>
+
+                <div class="report-section">
+                    <h3>📊 Summary Statistics</h3>
+                    <div class="report-item"><strong>Total Entries:</strong> ${filtered.length}</div>
+                    ${!typeFilter || typeFilter === 'enrollment' ? `<div class="report-item"><strong>New Enrollments:</strong> ${enrollments.length}</div>` : ''}
+                    ${!typeFilter || typeFilter === 'housing_voucher' ? `<div class="report-item"><strong>Housing Vouchers Awarded:</strong> ${housing.length}</div>` : ''}
+                    ${!typeFilter || typeFilter === 'followup' ? `<div class="report-item"><strong>Follow-up Contacts:</strong> ${followups.length}</div>` : ''}
+                    <div class="report-item"><strong>MyEvolv Completed:</strong> ${myEvolvComplete}</div>
+                    <div class="report-item"><strong>HMIS Completed:</strong> ${hmisComplete}</div>
+                    <div class="report-item"><strong>Both Systems Complete:</strong> ${bothComplete}</div>
+                    <div class="report-item"><strong>Completion Rate:</strong> ${filtered.length > 0 ? ((bothComplete / filtered.length) * 100).toFixed(1) : 0}%</div>
+                </div>
+
+                ${!typeFilter || typeFilter === 'enrollment' ? `
+                <div class="report-section">
+                    <h3>👥 New Enrollments (${enrollments.length})</h3>
+                    ${enrollments.map(e => `
+                        <div class="report-item">
+                            <strong>${e.client_name}</strong> - ${formatDate(e.entry_date)}
+                            <br>Case Manager: ${e.case_manager || 'Not assigned'}
+                            <br>Status: MyEvolv ${e.myevolv_completed ? '✓' : '✗'} | HMIS ${e.hmis_completed ? '✓' : '✗'}
+                            ${e.notes ? `<br><em>Notes: ${e.notes}</em>` : ''}
+                        </div>
+                    `).join('') || '<div class="report-item">No enrollments this month</div>'}
+                </div>
+                ` : ''}
+
+                ${!typeFilter || typeFilter === 'housing_voucher' ? `
+                <div class="report-section">
+                    <h3>🏠 Housing Vouchers (${housing.length})</h3>
+                    ${housing.map(e => `
+                        <div class="report-item">
+                            <strong>${e.client_name}</strong> - ${formatDate(e.entry_date)}
+                            <br>Case Manager: ${e.case_manager || 'Not assigned'}
+                            <br>Status: MyEvolv ${e.myevolv_completed ? '✓' : '✗'} | HMIS ${e.hmis_completed ? '✓' : '✗'}
+                            ${e.notes ? `<br><em>Notes: ${e.notes}</em>` : ''}
+                        </div>
+                    `).join('') || '<div class="report-item">No housing vouchers this month</div>'}
+                </div>
+                ` : ''}
+
+                ${!typeFilter || typeFilter === 'followup' ? `
+                <div class="report-section">
+                    <h3>📞 Follow-up Contacts (${followups.length})</h3>
+                    ${followups.map(e => `
+                        <div class="report-item">
+                            <strong>${e.client_name}</strong> - ${formatDate(e.entry_date)}
+                            <br>Case Manager: ${e.case_manager || 'Not assigned'}
+                            <br>Status: MyEvolv ${e.myevolv_completed ? '✓' : '✗'} | HMIS ${e.hmis_completed ? '✓' : '✗'}
+                            ${e.notes ? `<br><em>Notes: ${e.notes}</em>` : ''}
+                        </div>
+                    `).join('') || '<div class="report-item">No follow-ups this month</div>'}
+                </div>
+                ` : ''}
+
+                <div class="report-section">
+                    <h3>⚠️ Incomplete Entries</h3>
+                    ${filtered.filter(e => !e.myevolv_completed || !e.hmis_completed).map(e => `
+                        <div class="report-item">
+                            <strong>${e.client_name}</strong> - ${formatType(e.entry_type)}
+                            <br>Missing: ${!e.myevolv_completed ? 'MyEvolv ' : ''}${!e.hmis_completed ? 'HMIS' : ''}
+                        </div>
+                    `).join('') || '<div class="report-item" style="color: green;">✓ All entries complete!</div>'}
+                </div>
+            `;
+
+            document.getElementById('reportContent').innerHTML = reportHtml;
+            document.getElementById('reportModal').classList.add('active');
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.remove('active');
+        }
+
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = `<div class="message ${type}">${message}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString + 'T00:00:00');
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function formatMonthYear(monthString) {
+            const [year, month] = monthString.split('-');
+            const date = new Date(year, month - 1);
+            return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        }
+
+        function formatType(type) {
+            const types = {
+                'enrollment': 'Enrollment',
+                'housing_voucher': 'Housing',
+                'followup': 'Follow-up'
+            };
+            return types[type] || type;
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
     </script>
 </body>
 </html>
