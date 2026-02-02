@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PATH Hub Tracker - Professional v4.3</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.6; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #2c5282 0%, #2b6cb0 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 1.8rem; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-info span { font-size: 0.9rem; opacity: 0.9; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-primary { background: #48bb78; color: white; }
+        .btn-primary:hover { background: #38a169; }
+        .btn-secondary { background: #718096; color: white; }
+        .btn-secondary:hover { background: #4a5568; }
+        .btn-danger { background: #e53e3e; color: white; }
+        .btn-danger:hover { background: #c53030; }
+        .btn-edit { background: #3182ce; color: white; padding: 6px 12px; font-size: 0.85rem; }
+        .btn-edit:hover { background: #2b6cb0; }
+
+        /* Auth Section */
+        .auth-section { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: 100px auto; }
+        .auth-section h2 { margin-bottom: 20px; color: #2c5282; }
+        .auth-section input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 1rem; }
+        .auth-section input:focus { outline: none; border-color: #3182ce; box-shadow: 0 0 0 3px rgba(49,130,206,0.1); }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { padding: 12px 24px; background: white; border: none; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; color: #4a5568; transition: all 0.2s; }
+        .tab.active { background: #2c5282; color: white; }
+        .tab:hover:not(.active) { background: #e2e8f0; }
+
+        /* Cards */
+        .card { background: white; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 25px; margin-bottom: 20px; }
+        .card h3 { color: #2c5282; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; }
+
+        /* Form Grid */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: 600; margin-bottom: 6px; color: #4a5568; font-size: 0.9rem; }
+        .form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 1rem; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #3182ce; box-shadow: 0 0 0 3px rgba(49,130,206,0.1); }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .form-group.full-width { grid-column: 1 / -1; }
+
+        /* CE Score Styling */
+        .ce-score-input { width: 80px !important; }
+        .ce-high-acuity { background-color: #fed7d7 !important; border-color: #fc8181 !important; }
+        .ce-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; }
+        .ce-badge.high { background: #e53e3e; color: white; }
+        .ce-badge.medium { background: #ed8936; color: white; }
+        .ce-badge.low { background: #48bb78; color: white; }
+
+        /* Filter Bar */
+        .filter-bar { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding: 15px; background: #edf2f7; border-radius: 8px; }
+        .filter-bar label { font-weight: 600; color: #4a5568; }
+        .filter-bar select, .filter-bar input { padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 6px; }
+
+        /* Table */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { background: #2c5282; color: white; padding: 12px 10px; text-align: left; font-weight: 600; white-space: nowrap; }
+        td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
+        tr:hover { background: #f7fafc; }
+        tr.high-acuity { background: #fed7d7 !important; }
+        tr.high-acuity:hover { background: #feb2b2 !important; }
+
+        /* Status Badges */
+        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+        .status-completed { background: #c6f6d5; color: #22543d; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-in-progress { background: #bee3f8; color: #2a4365; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 10px; max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto; padding: 30px; }
+        .modal h3 { margin-bottom: 20px; color: #2c5282; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+        .stat-card .number { font-size: 2.5rem; font-weight: 700; color: #2c5282; }
+        .stat-card .label { color: #718096; font-size: 0.9rem; }
+
+        /* Alerts */
+        .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
+        .alert-success { background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
+        .alert-error { background: #fed7d7; color: #742a2a; border: 1px solid #fc8181; }
+
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: #718096; }
+
+        /* Hidden */
+        .hidden { display: none !important; }
+
+        /* Print Styles */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .card { box-shadow: none; border: 1px solid #e2e8f0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Section -->
+    <div id="authSection" class="auth-section">
+        <h2>PATH Hub Tracker</h2>
+        <p style="margin-bottom: 20px; color: #718096;">Sign in to continue</p>
+        <input type="email" id="loginEmail" placeholder="Email address" />
+        <input type="password" id="loginPassword" placeholder="Password" />
+        <button class="btn btn-primary" style="width: 100%;" onclick="signIn()">Sign In</button>
+        <div id="authError" class="alert alert-error hidden" style="margin-top: 15px;"></div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="container hidden">
+        <header>
+            <h1>PATH Hub Tracker</h1>
+            <div class="user-info">
+                <span id="userEmail"></span>
+                <button class="btn btn-secondary" onclick="signOut()">Sign Out</button>
+            </div>
+        </header>
+
+        <!-- Alert Area -->
+        <div id="alertArea"></div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number" id="totalEntries">0</div>
+                <div class="label">Total Entries</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="thisMonth">0</div>
+                <div class="label">This Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="highAcuity">0</div>
+                <div class="label">High Acuity (14-16)</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="pendingCount">0</div>
+                <div class="label">Pending</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs no-print">
+            <button class="tab active" onclick="showTab('entries')">All Entries</button>
+            <button class="tab" onclick="showTab('newEntry')">+ New Entry</button>
+            <button class="tab" onclick="showTab('standaloneCE')">Stand-alone CE</button>
+        </div>
+
+        <!-- New Entry Form -->
+        <div id="newEntryTab" class="card hidden">
+            <h3 id="formTitle">New Entry</h3>
+            <input type="hidden" id="editingEntryId" value="" />
+            <form id="entryForm" onsubmit="submitEntry(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Client Name *</label>
+                        <input type="text" id="clientName" required />
+                    </div>
+                    <div class="form-group">
+                        <label>HMIS ID</label>
+                        <input type="text" id="hmisId" />
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" id="dob" />
+                    </div>
+                    <div class="form-group">
+                        <label>Entry Type *</label>
+                        <select id="entryType" required onchange="toggleCEScore()">
+                            <option value="">Select type...</option>
+                            <option value="Stand-alone CE">Stand-alone CE</option>
+                            <option value="MyEvolv Entry">MyEvolv Entry</option>
+                            <option value="HMIS Entry">HMIS Entry</option>
+                            <option value="full_enrollment">Full Enrollment</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Entry Date *</label>
+                        <input type="date" id="entryDate" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Encounter Date</label>
+                        <input type="date" id="encounterDate" />
+                    </div>
+                    <div class="form-group">
+                        <label>Case Manager</label>
+                        <select id="caseManager">
+                            <option value="">Select...</option>
+                            <option value="Ariel Nappi">Ariel Nappi</option>
+                            <option value="Nevaeh Grady">Nevaeh Grady</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>CE Score (0-16)</label>
+                        <input type="number" id="ceScore" min="0" max="16" class="ce-score-input" onchange="highlightCEScore(this)" />
+                        <small style="color: #718096;">14-16 = High Acuity</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Living Situation</label>
+                        <select id="livingSituation">
+                            <option value="">Select...</option>
+                            <option value="Homeless">Homeless</option>
+                            <option value="Sheltered">Sheltered</option>
+                            <option value="Doubled Up">Doubled Up</option>
+                            <option value="Outside in his car">Outside/Vehicle</option>
+                            <option value="Transitional">Transitional</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Enrollment Status</label>
+                        <select id="enrollmentStatus">
+                            <option value="">Select...</option>
+                            <option value="Not Enrolled">Not Enrolled</option>
+                            <option value="Partially Enrolled">Partially Enrolled</option>
+                            <option value="Fully Enrolled">Fully Enrolled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Insurance</label>
+                        <select id="insurance">
+                            <option value="">Select...</option>
+                            <option value="None">None</option>
+                            <option value="MaineCare">MaineCare</option>
+                            <option value="Medicare">Medicare</option>
+                            <option value="Private">Private</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>System</label>
+                        <select id="system">
+                            <option value="">Select...</option>
+                            <option value="HMIS">HMIS</option>
+                            <option value="MyEvolv">MyEvolv</option>
+                            <option value="Both">Both</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Voucher Type</label>
+                        <select id="voucherType">
+                            <option value="None">None</option>
+                            <option value="PSHP">PSHP</option>
+                            <option value="EHV">EHV</option>
+                            <option value="Section 8">Section 8</option>
+                            <option value="VASH">VASH</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Voucher Status</label>
+                        <select id="voucherStatus">
+                            <option value="Inactive">Inactive</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Active">Active</option>
+                            <option value="Expired">Expired</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="status">
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <!-- Document Checkboxes -->
+                    <div class="form-group">
+                        <label>Documents on File</label>
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap; padding-top: 5px;">
+                            <label style="font-weight: normal; display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="docSS" /> SS Card
+                            </label>
+                            <label style="font-weight: normal; display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="docID" /> ID
+                            </label>
+                            <label style="font-weight: normal; display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="docBirth" /> Birth Cert
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Notes</label>
+                        <textarea id="notes" placeholder="Enter any additional notes..."></textarea>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Save Entry</button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Entries Table -->
+        <div id="entriesTab" class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; border: none; padding: 0;">Entries</h3>
+                <div class="no-print" style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" onclick="exportCSV()">Export CSV</button>
+                    <button class="btn btn-secondary" onclick="window.print()">Print</button>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar no-print">
+                <label>Filter by Type:</label>
+                <select id="filterType" onchange="loadEntries()">
+                    <option value="">All Types</option>
+                    <option value="Stand-alone CE">Stand-alone CE</option>
+                    <option value="MyEvolv Entry">MyEvolv Entry</option>
+                    <option value="HMIS Entry">HMIS Entry</option>
+                    <option value="full_enrollment">Full Enrollment</option>
+                </select>
+                <label>Case Manager:</label>
+                <select id="filterCaseManager" onchange="loadEntries()">
+                    <option value="">All</option>
+                    <option value="Ariel Nappi">Ariel Nappi</option>
+                    <option value="Nevaeh Grady">Nevaeh Grady</option>
+                </select>
+                <label>Status:</label>
+                <select id="filterStatus" onchange="loadEntries()">
+                    <option value="">All</option>
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                </select>
+                <label>CE Score:</label>
+                <select id="filterCE" onchange="loadEntries()">
+                    <option value="">All</option>
+                    <option value="high">High (14-16)</option>
+                    <option value="medium">Medium (8-13)</option>
+                    <option value="low">Low (0-7)</option>
+                </select>
+                <label>Search:</label>
+                <input type="text" id="searchInput" placeholder="Client name..." onkeyup="loadEntries()" />
+            </div>
+
+            <div class="table-container">
+                <table id="entriesTable">
+                    <thead>
+                        <tr>
+                            <th>Actions</th>
+                            <th>Client Name</th>
+                            <th>HMIS ID</th>
+                            <th>Entry Type</th>
+                            <th>Entry Date</th>
+                            <th>CE Score</th>
+                            <th>Case Manager</th>
+                            <th>Enrollment</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="entriesBody">
+                        <tr><td colspan="10" class="loading">Loading entries...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Stand-alone CE Tab -->
+        <div id="standaloneCETab" class="card hidden">
+            <h3>Stand-alone CE Entries</h3>
+            <div style="margin-bottom: 15px;">
+                <button class="btn btn-primary" onclick="exportCEReport()">Export CE Report (CSV)</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Actions</th>
+                            <th>Client Name</th>
+                            <th>HMIS ID</th>
+                            <th>CE Score</th>
+                            <th>Acuity</th>
+                            <th>Entry Date</th>
+                            <th>Case Manager</th>
+                            <th>Living Situation</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ceEntriesBody">
+                        <tr><td colspan="9" class="loading">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal">
+            <h3>Edit Entry</h3>
+            <div id="editFormContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Config
+        const SUPABASE_URL = 'https://wvvepssoltooeeqqvnul.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2dmVwc3NvbHRvb2VlcXF2bnVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNDA3MDgsImV4cCI6MjA4MzcxNjcwOH0.xPFDECNheYPrxYTBfQ3IwbUY27UNfqMMojBvnB6ArnQ';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+        let allEntries = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                showMainApp();
+            }
+
+            // Set default date
+            document.getElementById('entryDate').valueAsDate = new Date();
+        });
+
+        // Auth Functions
+        async function signIn() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                document.getElementById('authError').textContent = error.message;
+                document.getElementById('authError').classList.remove('hidden');
+            } else {
+                currentUser = data.user;
+                showMainApp();
+            }
+        }
+
+        async function signOut() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('authSection').classList.remove('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userEmail').textContent = currentUser.email;
+            loadEntries();
+            loadStats();
+        }
+
+        // Tab Navigation
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+
+            if (tabName === 'entries') {
+                document.getElementById('entriesTab').classList.remove('hidden');
+                document.querySelectorAll('.tab')[0].classList.add('active');
+            } else if (tabName === 'newEntry') {
+                document.getElementById('newEntryTab').classList.remove('hidden');
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                resetForm();
+            } else if (tabName === 'standaloneCE') {
+                document.getElementById('standaloneCETab').classList.remove('hidden');
+                document.querySelectorAll('.tab')[2].classList.add('active');
+                loadCEEntries();
+            }
+        }
+
+        // Load Entries with Filters
+        async function loadEntries() {
+            const filterType = document.getElementById('filterType').value;
+            const filterCM = document.getElementById('filterCaseManager').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filterCE = document.getElementById('filterCE').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+
+            let query = supabase
+                .from('myevolv_entries')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (filterType) query = query.eq('entry_type', filterType);
+            if (filterCM) query = query.eq('case_manager', filterCM);
+            if (filterStatus) query = query.eq('status', filterStatus);
+
+            const { data, error } = await query;
+
+            if (error) {
+                showAlert('Error loading entries: ' + error.message, 'error');
+                return;
+            }
+
+            allEntries = data || [];
+
+            // Apply client-side filters
+            let filtered = allEntries;
+
+            if (search) {
+                filtered = filtered.filter(e =>
+                    (e.client_name || '').toLowerCase().includes(search) ||
+                    (e.hmis_id || '').toLowerCase().includes(search)
+                );
+            }
+
+            if (filterCE) {
+                filtered = filtered.filter(e => {
+                    const score = e.ce_score;
+                    if (!score && score !== 0) return false;
+                    if (filterCE === 'high') return score >= 14;
+                    if (filterCE === 'medium') return score >= 8 && score < 14;
+                    if (filterCE === 'low') return score < 8;
+                    return true;
+                });
+            }
+
+            renderEntries(filtered);
+        }
+
+        function renderEntries(entries) {
+            const tbody = document.getElementById('entriesBody');
+
+            if (!entries.length) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #718096;">No entries found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = entries.map(entry => {
+                const isHighAcuity = entry.ce_score >= 14;
+                const ceDisplay = entry.ce_score !== null && entry.ce_score !== undefined
+                    ? `<span class="ce-badge ${entry.ce_score >= 14 ? 'high' : entry.ce_score >= 8 ? 'medium' : 'low'}">${entry.ce_score}</span>`
+                    : '-';
+
+                return `
+                    <tr class="${isHighAcuity ? 'high-acuity' : ''}">
+                        <td>
+                            <button class="btn btn-edit" onclick="editEntry('${entry.id}')">Edit</button>
+                        </td>
+                        <td><strong>${entry.client_name || '-'}</strong></td>
+                        <td>${entry.hmis_id || '-'}</td>
+                        <td>${entry.entry_type || '-'}</td>
+                        <td>${entry.entry_date || '-'}</td>
+                        <td>${ceDisplay}</td>
+                        <td>${entry.case_manager || '-'}</td>
+                        <td>${entry.enrollment_status || '-'}</td>
+                        <td><span class="status-badge status-${entry.status || 'pending'}">${entry.status || 'pending'}</span></td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${(entry.notes || '').replace(/"/g, '&quot;')}">${entry.notes || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Load CE Entries
+        async function loadCEEntries() {
+            const { data, error } = await supabase
+                .from('myevolv_entries')
+                .select('*')
+                .eq('entry_type', 'Stand-alone CE')
+                .order('ce_score', { ascending: false, nullsFirst: false });
+
+            if (error) {
+                showAlert('Error: ' + error.message, 'error');
+                return;
+            }
+
+            const tbody = document.getElementById('ceEntriesBody');
+
+            if (!data.length) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No CE entries found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(entry => {
+                const score = entry.ce_score;
+                const acuity = score >= 14 ? 'HIGH' : score >= 8 ? 'Medium' : score !== null ? 'Low' : '-';
+                const acuityClass = score >= 14 ? 'high' : score >= 8 ? 'medium' : 'low';
+
+                return `
+                    <tr class="${score >= 14 ? 'high-acuity' : ''}">
+                        <td><button class="btn btn-edit" onclick="editEntry('${entry.id}')">Edit</button></td>
+                        <td><strong>${entry.client_name || '-'}</strong></td>
+                        <td>${entry.hmis_id || '-'}</td>
+                        <td>${score !== null ? `<span class="ce-badge ${acuityClass}">${score}</span>` : '-'}</td>
+                        <td><span class="ce-badge ${acuityClass}">${acuity}</span></td>
+                        <td>${entry.entry_date || '-'}</td>
+                        <td>${entry.case_manager || '-'}</td>
+                        <td>${entry.living_situation || '-'}</td>
+                        <td style="max-width: 250px;">${entry.notes || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Load Stats
+        async function loadStats() {
+            const { data } = await supabase.from('myevolv_entries').select('*');
+
+            if (!data) return;
+
+            const now = new Date();
+            const thisMonth = data.filter(e => {
+                const d = new Date(e.created_at);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+            });
+
+            const highAcuity = data.filter(e => e.ce_score >= 14);
+            const pending = data.filter(e => e.status === 'pending');
+
+            document.getElementById('totalEntries').textContent = data.length;
+            document.getElementById('thisMonth').textContent = thisMonth.length;
+            document.getElementById('highAcuity').textContent = highAcuity.length;
+            document.getElementById('pendingCount').textContent = pending.length;
+        }
+
+        // Edit Entry
+        async function editEntry(id) {
+            const entry = allEntries.find(e => e.id === id);
+            if (!entry) {
+                // Fetch if not in current list
+                const { data } = await supabase.from('myevolv_entries').select('*').eq('id', id).single();
+                if (data) populateForm(data);
+            } else {
+                populateForm(entry);
+            }
+
+            document.getElementById('editingEntryId').value = id;
+            document.getElementById('formTitle').textContent = 'Edit Entry';
+            document.getElementById('submitBtn').textContent = 'Update Entry';
+            showTab('newEntry');
+        }
+
+        function populateForm(entry) {
+            document.getElementById('clientName').value = entry.client_name || '';
+            document.getElementById('hmisId').value = entry.hmis_id || '';
+            document.getElementById('dob').value = entry.dob || '';
+            document.getElementById('entryType').value = entry.entry_type || '';
+            document.getElementById('entryDate').value = entry.entry_date || '';
+            document.getElementById('encounterDate').value = entry.encounter_date || '';
+            document.getElementById('caseManager').value = entry.case_manager || '';
+            document.getElementById('ceScore').value = entry.ce_score !== null ? entry.ce_score : '';
+            document.getElementById('livingSituation').value = entry.living_situation || '';
+            document.getElementById('enrollmentStatus').value = entry.enrollment_status || '';
+            document.getElementById('insurance').value = entry.insurance || '';
+            document.getElementById('system').value = entry.system || '';
+            document.getElementById('voucherType').value = entry.voucher_type || 'None';
+            document.getElementById('voucherStatus').value = entry.voucher_status || 'Inactive';
+            document.getElementById('status').value = entry.status || 'pending';
+            document.getElementById('docSS').checked = entry.doc_ss || false;
+            document.getElementById('docID').checked = entry.doc_id || false;
+            document.getElementById('docBirth').checked = entry.doc_birth || false;
+            document.getElementById('notes').value = entry.notes || '';
+
+            highlightCEScore(document.getElementById('ceScore'));
+        }
+
+        function resetForm() {
+            document.getElementById('entryForm').reset();
+            document.getElementById('editingEntryId').value = '';
+            document.getElementById('formTitle').textContent = 'New Entry';
+            document.getElementById('submitBtn').textContent = 'Save Entry';
+            document.getElementById('entryDate').valueAsDate = new Date();
+            document.getElementById('ceScore').classList.remove('ce-high-acuity');
+        }
+
+        function cancelEdit() {
+            resetForm();
+            showTab('entries');
+        }
+
+        // Submit Entry
+        async function submitEntry(event) {
+            event.preventDefault();
+
+            const editingId = document.getElementById('editingEntryId').value;
+            const ceScoreVal = document.getElementById('ceScore').value;
+
+            const entryData = {
+                client_name: document.getElementById('clientName').value,
+                hmis_id: document.getElementById('hmisId').value || null,
+                dob: document.getElementById('dob').value || null,
+                entry_type: document.getElementById('entryType').value,
+                entry_date: document.getElementById('entryDate').value,
+                encounter_date: document.getElementById('encounterDate').value || null,
+                case_manager: document.getElementById('caseManager').value || null,
+                ce_score: ceScoreVal !== '' ? parseInt(ceScoreVal) : null,
+                living_situation: document.getElementById('livingSituation').value || null,
+                enrollment_status: document.getElementById('enrollmentStatus').value || null,
+                insurance: document.getElementById('insurance').value || null,
+                system: document.getElementById('system').value || null,
+                voucher_type: document.getElementById('voucherType').value,
+                voucher_status: document.getElementById('voucherStatus').value,
+                status: document.getElementById('status').value,
+                doc_ss: document.getElementById('docSS').checked,
+                doc_id: document.getElementById('docID').checked,
+                doc_birth: document.getElementById('docBirth').checked,
+                notes: document.getElementById('notes').value || null,
+                program: 'PATH'
+            };
+
+            let result;
+
+            if (editingId) {
+                // Update existing
+                result = await supabase
+                    .from('myevolv_entries')
+                    .update(entryData)
+                    .eq('id', editingId);
+            } else {
+                // Insert new
+                entryData.user_id = currentUser.id;
+                entryData.user_email = currentUser.email;
+                entryData.client_id = 'CLT-' + Date.now();
+
+                result = await supabase
+                    .from('myevolv_entries')
+                    .insert([entryData]);
+            }
+
+            if (result.error) {
+                showAlert('Error: ' + result.error.message, 'error');
+            } else {
+                showAlert(editingId ? 'Entry updated successfully!' : 'Entry saved successfully!', 'success');
+                resetForm();
+                showTab('entries');
+                loadStats();
+            }
+        }
+
+        // CE Score Highlighting
+        function highlightCEScore(input) {
+            const score = parseInt(input.value);
+            if (score >= 14) {
+                input.classList.add('ce-high-acuity');
+            } else {
+                input.classList.remove('ce-high-acuity');
+            }
+        }
+
+        function toggleCEScore() {
+            // Could add logic to show/hide CE score based on entry type
+        }
+
+        // Export CSV - All Data Including Notes
+        function exportCSV() {
+            if (!allEntries.length) {
+                showAlert('No entries to export', 'error');
+                return;
+            }
+
+            const headers = [
+                'Client Name', 'HMIS ID', 'DOB', 'Entry Type', 'Entry Date',
+                'Encounter Date', 'CE Score', 'Case Manager', 'Living Situation',
+                'Enrollment Status', 'Insurance', 'System', 'Voucher Type',
+                'Voucher Status', 'Status', 'Doc SS', 'Doc ID', 'Doc Birth', 'Notes', 'Created At'
+            ];
+
+            const rows = allEntries.map(e => [
+                e.client_name || '',
+                e.hmis_id || '',
+                e.dob || '',
+                e.entry_type || '',
+                e.entry_date || '',
+                e.encounter_date || '',
+                e.ce_score !== null ? e.ce_score : '',
+                e.case_manager || '',
+                e.living_situation || '',
+                e.enrollment_status || '',
+                e.insurance || '',
+                e.system || '',
+                e.voucher_type || '',
+                e.voucher_status || '',
+                e.status || '',
+                e.doc_ss ? 'Yes' : 'No',
+                e.doc_id ? 'Yes' : 'No',
+                e.doc_birth ? 'Yes' : 'No',
+                (e.notes || '').replace(/"/g, '""'),
+                e.created_at || ''
+            ]);
+
+            downloadCSV(headers, rows, 'path-entries-export.csv');
+        }
+
+        // Export CE Report
+        async function exportCEReport() {
+            const { data } = await supabase
+                .from('myevolv_entries')
+                .select('*')
+                .eq('entry_type', 'Stand-alone CE')
+                .order('ce_score', { ascending: false });
+
+            if (!data || !data.length) {
+                showAlert('No CE entries to export', 'error');
+                return;
+            }
+
+            const headers = [
+                'Client Name', 'HMIS ID', 'CE Score', 'Acuity Level',
+                'Entry Date', 'Case Manager', 'Living Situation', 'Notes'
+            ];
+
+            const rows = data.map(e => {
+                const score = e.ce_score;
+                const acuity = score >= 14 ? 'HIGH' : score >= 8 ? 'Medium' : score !== null ? 'Low' : '';
+                return [
+                    e.client_name || '',
+                    e.hmis_id || '',
+                    score !== null ? score : '',
+                    acuity,
+                    e.entry_date || '',
+                    e.case_manager || '',
+                    e.living_situation || '',
+                    (e.notes || '').replace(/"/g, '""')
+                ];
+            });
+
+            downloadCSV(headers, rows, 'ce-report-export.csv');
+        }
+
+        function downloadCSV(headers, rows, filename) {
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+
+            showAlert('CSV exported successfully!', 'success');
+        }
+
+        // Alert Helper
+        function showAlert(message, type) {
+            const alertArea = document.getElementById('alertArea');
+            alertArea.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => alertArea.innerHTML = '', 5000);
+        }
+    </script>
+</body>
+</html>
