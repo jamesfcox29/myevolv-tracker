@@ -219,7 +219,9 @@ function saveEntry(evt) {
     notes: document.getElementById('notes').value || null,
     user_id: user.id,
     user_email: user.email,
-    client_id: 'CLT-' + Date.now()
+    client_id: 'CLT-' + Date.now(),
+    entry_date: new Date().toISOString().split('T')[0],
+    program: 'PATH'
   };
   
   if (editing) {
