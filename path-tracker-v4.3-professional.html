@@ -115,7 +115,7 @@
         <p style="margin-bottom: 20px; color: #718096;">Sign in to continue</p>
         <input type="email" id="loginEmail" placeholder="Email address" />
         <input type="password" id="loginPassword" placeholder="Password" />
-        <button class="btn btn-primary" style="width: 100%;" onclick="signIn()">Sign In</button>
+        <button id="signInBtn" class="btn btn-primary" style="width: 100%;">Sign In</button>
         <div id="authError" class="alert alert-error hidden" style="margin-top: 15px;"></div>
     </div>
 
@@ -125,7 +125,7 @@
             <h1>PATH Hub Tracker</h1>
             <div class="user-info">
                 <span id="userEmail"></span>
-                <button class="btn btn-secondary" onclick="signOut()">Sign Out</button>
+                <button id="signOutBtn" class="btn btn-secondary">Sign Out</button>
             </div>
         </header>
 
@@ -429,6 +429,10 @@
 
             // Set default date
             document.getElementById('entryDate').valueAsDate = new Date();
+
+            // Attach auth button listeners
+            document.getElementById('signInBtn').addEventListener('click', signIn);
+            document.getElementById('signOutBtn').addEventListener('click', signOut);
         });
 
         // Auth Functions
